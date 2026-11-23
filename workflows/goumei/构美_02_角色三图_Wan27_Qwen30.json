@@ -1,0 +1,740 @@
+{
+  "id": "697d447e-3b11-412f-8649-e6f4b38712cb",
+  "revision": 0,
+  "last_node_id": 125,
+  "last_link_id": 26,
+  "nodes": [
+    {
+      "id": 100,
+      "type": "LoadImage",
+      "title": "A｜最初的人物参考（身份与体型）",
+      "pos": [
+        30,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            18,
+            23
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_A人物参考.png",
+        "image"
+      ]
+    },
+    {
+      "id": 101,
+      "type": "LoadImage",
+      "title": "A｜已选择的目标服饰（单品/搭配图）",
+      "pos": [
+        510,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            19,
+            22
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_A目标服饰.png",
+        "image"
+      ]
+    },
+    {
+      "id": 106,
+      "type": "PrimitiveStringMultiline",
+      "title": "已确认替换对象及身体侧别｜核对识别结果后填写",
+      "pos": [
+        990,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            17
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "请填写采用哪些单品、对应参考图编号、区域说明及确定的携带关系。\n例如：仅替换图片2中的外套；未指定的鞋袜/配饰沿用人物参考，不新增。\n左右以人物自身为准；没有证据时不要猜测背包肩侧。"
+      ]
+    },
+    {
+      "id": 117,
+      "type": "PrimitiveStringMultiline",
+      "title": "正面穿搭提示词｜颈部以下至鞋底",
+      "pos": [
+        1530,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            16
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "根据人物与目标服饰参考生成同一角色的正面全身穿搭图。图片1是人物身份和体型，图片2及后续图片是已确认目标服饰。\n画面仅从颈部以下到鞋底，不展示人脸。正面站立，身体比例自然，完整展示衣物、手部和鞋子，不裁切。\n按已确认单品替换；整体图确定轮廓、版型和穿搭关系，细节图仅补充同一单品对应细节。保持颜色、材质、衣长、领型、门襟、袖口、口袋及鞋子结构，不混合款式、不新增重复单品。\n正常穿着层次、自然垂坠与合理体积，配饰有合理穿戴、支撑或握持关系。简洁背景，单张正面参考，不生成拼图、文字或展示板。\n【已确认单品与携带约束优先于模型推测】"
+      ]
+    },
+    {
+      "id": 118,
+      "type": "StringConcatenate",
+      "title": "正面模板 + 已确认单品",
+      "pos": [
+        2010,
+        290
+      ],
+      "size": [
+        430,
+        240
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "string_a",
+          "type": "STRING",
+          "link": 16,
+          "widget": {
+            "name": "string_a"
+          }
+        },
+        {
+          "name": "string_b",
+          "type": "STRING",
+          "link": 17,
+          "widget": {
+            "name": "string_b"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            20
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StringConcatenate"
+      },
+      "widgets_values": [
+        "",
+        "",
+        "\n\n"
+      ]
+    },
+    {
+      "id": 119,
+      "type": "Wan27ImageAPI",
+      "title": "A 正面｜Wan2.7 Image Pro",
+      "pos": [
+        2490,
+        290
+      ],
+      "size": [
+        430,
+        1000
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_images.image0",
+          "type": "IMAGE",
+          "link": 18
+        },
+        {
+          "name": "reference_images.image1",
+          "type": "IMAGE",
+          "link": 19
+        },
+        {
+          "name": "reference_images.image2",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "link": 20,
+          "widget": {
+            "name": "prompt"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            21,
+            24
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Wan27ImageAPI"
+      },
+      "widgets_values": [
+        "wan2.7-image-pro",
+        "",
+        "async",
+        "1536*2048",
+        false,
+        1,
+        2026,
+        "fixed",
+        true,
+        false,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        600
+      ],
+      "widgets_values_named": {
+        "model": "wan2.7-image-pro",
+        "prompt": "",
+        "call_mode": "async",
+        "size": "1536*2048",
+        "enable_sequential": false,
+        "n": 1,
+        "seed": 2026,
+        "thinking_mode": true,
+        "watermark": false,
+        "bbox_list": "",
+        "color_palette": "",
+        "resume_task_id": "",
+        "image_urls": "",
+        "base_url": "",
+        "api_key": "",
+        "timeout": 600
+      }
+    },
+    {
+      "id": 120,
+      "type": "Wan27ImageAPI",
+      "title": "A 背面｜必须依赖正面图",
+      "pos": [
+        1530,
+        1410
+      ],
+      "size": [
+        430,
+        1000
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_images.image0",
+          "type": "IMAGE",
+          "link": 21
+        },
+        {
+          "name": "reference_images.image1",
+          "type": "IMAGE",
+          "link": 22
+        },
+        {
+          "name": "reference_images.image2",
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            25
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Wan27ImageAPI"
+      },
+      "widgets_values": [
+        "wan2.7-image-pro",
+        "图片1为已生成并确认的正面穿搭图，是同一人体型、服饰组合、颜色、长度、鞋子款式的主要依据。图片2为原始服饰参考，仅在明确可见时补充结构。\n生成同一人物同一套服饰的背面全身图，画面仅从颈部以下至鞋底，不展示人脸。背向镜头站立，完整展示衣物、手部和鞋子。\n正背面必须是同一件外套、同一条裤子、同款鞋袜和同一配饰。不得重新设计鞋子，不改变鞋底、鞋帮高度、鞋跟、颜色或装饰。\n有明确背面素材时按素材还原；没有依据时不凭空增加图案、文字、口袋或装饰，不把正面 logo 复制到背面。\n配饰左右以人物自身为准，不因画面左右变化而换肩换手。保持穿戴层次、单品数量与携带关系。简洁背景，单张背面参考，不生成拼图或文字。",
+        "async",
+        "1536*2048",
+        false,
+        1,
+        2026,
+        "fixed",
+        true,
+        false,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        600
+      ],
+      "widgets_values_named": {
+        "model": "wan2.7-image-pro",
+        "prompt": "图片1为已生成并确认的正面穿搭图，是同一人体型、服饰组合、颜色、长度、鞋子款式的主要依据。图片2为原始服饰参考，仅在明确可见时补充结构。\n生成同一人物同一套服饰的背面全身图，画面仅从颈部以下至鞋底，不展示人脸。背向镜头站立，完整展示衣物、手部和鞋子。\n正背面必须是同一件外套、同一条裤子、同款鞋袜和同一配饰。不得重新设计鞋子，不改变鞋底、鞋帮高度、鞋跟、颜色或装饰。\n有明确背面素材时按素材还原；没有依据时不凭空增加图案、文字、口袋或装饰，不把正面 logo 复制到背面。\n配饰左右以人物自身为准，不因画面左右变化而换肩换手。保持穿戴层次、单品数量与携带关系。简洁背景，单张背面参考，不生成拼图或文字。",
+        "call_mode": "async",
+        "size": "1536*2048",
+        "enable_sequential": false,
+        "n": 1,
+        "seed": 2026,
+        "thinking_mode": true,
+        "watermark": false,
+        "bbox_list": "",
+        "color_palette": "",
+        "resume_task_id": "",
+        "image_urls": "",
+        "base_url": "",
+        "api_key": "",
+        "timeout": 600
+      }
+    },
+    {
+      "id": 121,
+      "type": "QwenImageAPI",
+      "title": "A 人脸特写｜Qwen3.0 Pro / 仅原人物",
+      "pos": [
+        2010,
+        1410
+      ],
+      "size": [
+        430,
+        1000
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_images.image0",
+          "type": "IMAGE",
+          "link": 23
+        },
+        {
+          "name": "reference_images.image1",
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            26
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "QwenImageAPI"
+      },
+      "widgets_values": [
+        "qwen-image-3.0-pro",
+        "根据最初上传的同一人物参考生成清晰的正面人脸特写。保持脸型、五官比例、肤色、发际线和可见头部特征一致，多张参考表示同一个人，不融合为新身份。\n人脸占据画面主体，紧凑构图，清楚呈现额头、眼睛、鼻子、嘴、脸颊和下巴。不要半身或全身照，不让衣服占主要画面。\n正视镜头、自然表情、均匀光线，保留自然皮肤质感，不夸张美颜、不改变年龄或五官。单张特写，不生成拼图或文字。",
+        "openai",
+        "1024x1024",
+        1,
+        2026,
+        "fixed",
+        true,
+        "direct",
+        true,
+        false,
+        "",
+        "url",
+        "",
+        "",
+        "",
+        600
+      ],
+      "widgets_values_named": {
+        "model": "qwen-image-3.0-pro",
+        "prompt": "根据最初上传的同一人物参考生成清晰的正面人脸特写。保持脸型、五官比例、肤色、发际线和可见头部特征一致，多张参考表示同一个人，不融合为新身份。\n人脸占据画面主体，紧凑构图，清楚呈现额头、眼睛、鼻子、嘴、脸颊和下巴。不要半身或全身照，不让衣服占主要画面。\n正视镜头、自然表情、均匀光线，保留自然皮肤质感，不夸张美颜、不改变年龄或五官。单张特写，不生成拼图或文字。",
+        "protocol": "openai",
+        "size": "1024x1024",
+        "n": 1,
+        "seed": 2026,
+        "prompt_extend": true,
+        "prompt_extend_mode": "direct",
+        "enable_thinking": true,
+        "watermark": false,
+        "negative_prompt": "",
+        "response_format": "url",
+        "image_urls": "",
+        "base_url": "",
+        "api_key": "",
+        "timeout": 600
+      }
+    },
+    {
+      "id": 122,
+      "type": "SaveImage",
+      "title": "确认并保存 A 正面",
+      "pos": [
+        2490,
+        1410
+      ],
+      "size": [
+        430,
+        400
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 24
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "Goumei/A_front"
+      ]
+    },
+    {
+      "id": 123,
+      "type": "SaveImage",
+      "title": "确认并保存 A 背面",
+      "pos": [
+        1530,
+        2530
+      ],
+      "size": [
+        430,
+        400
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 25
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "Goumei/A_back"
+      ]
+    },
+    {
+      "id": 124,
+      "type": "SaveImage",
+      "title": "确认并保存 A 人脸",
+      "pos": [
+        2010,
+        2530
+      ],
+      "size": [
+        430,
+        400
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 26
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "Goumei/A_face"
+      ]
+    },
+    {
+      "id": 125,
+      "type": "Note",
+      "title": "构美流程｜先读这里",
+      "pos": [
+        0,
+        -160
+      ],
+      "size": [
+        1400,
+        320
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "基于 20261116 原工作流规整。\n① 使用 01 素材识别与台词确认；核对角色、单品、logo。② 使用 02 生成三图：Wan2.7 Pro 正面→背面，Qwen3.0 Pro 人脸（只用原人物）。③ 用 03 加载确认的三图，粘贴台词 JSON、连接各角色音色，开启 confirmed 后生成视频。\n主流程保留所有阶段；首次使用建议分阶段，避免重复生图。每段 2–15 秒；Video Slice 设置原片起点，台词时间从该段 0 秒开始；长片逐段后用 04 拼接。\n原人物/服饰/音色及视频请重新选择本地素材。原始 logo 细节接参考编排 extras，extra_labels 逐张填写，合计最多 10 图。图像节点的 API Key/base_url 留空使用本地配置。\n只有 B 画外音发言时，台词只写 B，路由自动仅传 B 的音频1。模型不会自行确认 ASR 角色。"
+      ]
+    }
+  ],
+  "links": [
+    [
+      16,
+      117,
+      0,
+      118,
+      0,
+      "STRING"
+    ],
+    [
+      17,
+      106,
+      0,
+      118,
+      1,
+      "STRING"
+    ],
+    [
+      18,
+      100,
+      0,
+      119,
+      0,
+      "IMAGE"
+    ],
+    [
+      19,
+      101,
+      0,
+      119,
+      1,
+      "IMAGE"
+    ],
+    [
+      20,
+      118,
+      0,
+      119,
+      3,
+      "STRING"
+    ],
+    [
+      21,
+      119,
+      0,
+      120,
+      0,
+      "IMAGE"
+    ],
+    [
+      22,
+      101,
+      0,
+      120,
+      1,
+      "IMAGE"
+    ],
+    [
+      23,
+      100,
+      0,
+      121,
+      0,
+      "IMAGE"
+    ],
+    [
+      24,
+      119,
+      0,
+      122,
+      0,
+      "IMAGE"
+    ],
+    [
+      25,
+      120,
+      0,
+      123,
+      0,
+      "IMAGE"
+    ],
+    [
+      26,
+      121,
+      0,
+      124,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "01｜原片、人物、服饰与产品资料",
+      "bounding": [
+        0,
+        220,
+        1470,
+        1260
+      ],
+      "color": "#375a7f",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "03｜三图生成：正面 → 背面 / 人脸",
+      "bounding": [
+        1500,
+        220,
+        1470,
+        3500
+      ],
+      "color": "#85623b",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.3,
+      "offset": [
+        100,
+        180
+      ]
+    },
+    "goumei_source": "20261116wan3.0口播视频复刻",
+    "goumei_staged": true
+  },
+  "version": 0.4
+}

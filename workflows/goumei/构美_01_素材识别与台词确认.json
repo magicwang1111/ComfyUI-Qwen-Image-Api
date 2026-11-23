@@ -1,0 +1,931 @@
+{
+  "id": "c0bca282-1edb-4b9e-acce-de7fd363f08a",
+  "revision": 0,
+  "last_node_id": 117,
+  "last_link_id": 15,
+  "nodes": [
+    {
+      "id": 100,
+      "type": "LoadImage",
+      "title": "A｜最初的人物参考（身份与体型）",
+      "pos": [
+        30,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_A人物参考.png",
+        "image"
+      ]
+    },
+    {
+      "id": 101,
+      "type": "LoadImage",
+      "title": "A｜已选择的目标服饰（单品/搭配图）",
+      "pos": [
+        510,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            8
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_A目标服饰.png",
+        "image"
+      ]
+    },
+    {
+      "id": 102,
+      "type": "LoadVideo",
+      "title": "原片｜保留声音供 ASR 和角色分析",
+      "pos": [
+        990,
+        290
+      ],
+      "size": [
+        430,
+        430
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadVideo"
+      },
+      "widgets_values": [
+        "请上传_原片.mp4",
+        "image"
+      ]
+    },
+    {
+      "id": 103,
+      "type": "Video Slice",
+      "title": "原片分段｜起点秒数；每段最多15秒",
+      "pos": [
+        30,
+        1410
+      ],
+      "size": [
+        430,
+        250
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Video Slice"
+      },
+      "widgets_values": [
+        0.0,
+        15.0,
+        false
+      ]
+    },
+    {
+      "id": 104,
+      "type": "Video Preprocess Validate",
+      "title": "检查视频｜2–15秒 / 分辨率 / 大小",
+      "pos": [
+        510,
+        1410
+      ],
+      "size": [
+        430,
+        180
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            3,
+            5
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "video_info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Video Preprocess Validate"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 105,
+      "type": "PrimitiveStringMultiline",
+      "title": "填写真实商品资料｜未提供的信息不编造",
+      "pos": [
+        990,
+        1410
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            10
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "【商品资料与卖点】\n请填写目标商品名称、材质、款式、价格和卖点；未提供的事实不得虚构。\n【台词来源】保留原文 / 使用自备稿 / 根据卖点改写（请选择一种）。\n【场景类型】单人＋画外音"
+      ]
+    },
+    {
+      "id": 106,
+      "type": "PrimitiveStringMultiline",
+      "title": "已确认替换对象及身体侧别｜核对识别结果后填写",
+      "pos": [
+        30,
+        2530
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "请填写采用哪些单品、对应参考图编号、区域说明及确定的携带关系。\n例如：仅替换图片2中的外套；未指定的鞋袜/配饰沿用人物参考，不新增。\n左右以人物自身为准；没有证据时不要猜测背包肩侧。"
+      ]
+    },
+    {
+      "id": 107,
+      "type": "ComfyUI-LLM Bailian ASR",
+      "title": "① 百炼 ASR｜带时间 + 说话分组",
+      "pos": [
+        1530,
+        290
+      ],
+      "size": [
+        430,
+        300
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "links": [
+            4,
+            6,
+            13
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "response_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ComfyUI-LLM Bailian ASR"
+      },
+      "widgets_values": [
+        "auto",
+        true,
+        true
+      ]
+    },
+    {
+      "id": 108,
+      "type": "PreviewAny",
+      "title": "核对 ASR 原文｜可作为保留原台词来源",
+      "pos": [
+        2010,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 109,
+      "type": "ComfyUI-LLM Qwen Bailian",
+      "title": "② Qwen3.8 Max｜口型 + 转写判断 A/B",
+      "pos": [
+        2490,
+        290
+      ],
+      "size": [
+        430,
+        700
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 5
+        },
+        {
+          "name": "user_prompt",
+          "type": "STRING",
+          "link": 6,
+          "widget": {
+            "name": "user_prompt"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "links": [
+            7,
+            11
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "response_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ComfyUI-LLM Qwen Bailian"
+      },
+      "widgets_values": [
+        "qwen3.8-max",
+        "low",
+        "结合原始视频画面和带时间的 ASR 转写判断实际角色与发言顺序。ASR 分组 0/1 只是声音分组，不直接等同于 A/B。\n依据对应时间的人物说话口型、声音与口型同步及同组一致性；不得按先后、语义、性别或音色猜测。\nA 是第一位出镜者；B 可能为第二位出镜者或画外音。无法可靠判断则 needs_confirmation=true，不强行映射。\n输出 JSON，含 scenario、speaker_mapping、evidence、needs_confirmation 和 segments（role/text/start/end）。保留原文，标明不确定。",
+        ""
+      ]
+    },
+    {
+      "id": 110,
+      "type": "PreviewAny",
+      "title": "核对角色映射｜不确定时必须人工选择",
+      "pos": [
+        1530,
+        1410
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 111,
+      "type": "ComfyUI-LLM Qwen Bailian",
+      "title": "③ Qwen3.8 Max｜识别单品与 logo 特写",
+      "pos": [
+        2010,
+        1410
+      ],
+      "size": [
+        430,
+        700
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 8
+        },
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "name": "user_prompt",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "user_prompt"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "links": [
+            9
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "response_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ComfyUI-LLM Qwen Bailian"
+      },
+      "widgets_values": [
+        "qwen3.8-max",
+        "low",
+        "分析服饰参考图（属于角色 A）。区分完整单品、同款局部细节和多件搭配图。\n对每件返回名称、类别、归一化位置框、可见颜色/款式/结构、用途（整体或局部）、不确定项。\n只有图片主要展示清晰 logo/字母/文字时标记 logo_text_closeup=true；面料、缝线、口袋以及小面积标识不得自动归类。不要猜测文字。\n若有多件或类别不明，返回 needs_confirmation=true 与候选单品，等待用户选择；不要自动替换所有单品。\n输出 JSON：{\"role\":\"A\",\"items\":[],\"logo_text_closeup\":false,\"needs_confirmation\":true,\"questions\":[]}。",
+        ""
+      ]
+    },
+    {
+      "id": 112,
+      "type": "PreviewAny",
+      "title": "核对服饰｜多件图先选择；原始logo额外保留",
+      "pos": [
+        2490,
+        1410
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 113,
+      "type": "StringConcatenate",
+      "title": "商品资料 + 角色和对话结构",
+      "pos": [
+        1530,
+        2530
+      ],
+      "size": [
+        430,
+        240
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "string_a",
+          "type": "STRING",
+          "link": 10,
+          "widget": {
+            "name": "string_a"
+          }
+        },
+        {
+          "name": "string_b",
+          "type": "STRING",
+          "link": 11,
+          "widget": {
+            "name": "string_b"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            12
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StringConcatenate"
+      },
+      "widgets_values": [
+        "",
+        "",
+        "\n\n"
+      ]
+    },
+    {
+      "id": 114,
+      "type": "StringConcatenate",
+      "title": "再加入完整 ASR 文本",
+      "pos": [
+        2010,
+        2530
+      ],
+      "size": [
+        430,
+        240
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "string_a",
+          "type": "STRING",
+          "link": 12,
+          "widget": {
+            "name": "string_a"
+          }
+        },
+        {
+          "name": "string_b",
+          "type": "STRING",
+          "link": 13,
+          "widget": {
+            "name": "string_b"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            14
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StringConcatenate"
+      },
+      "widgets_values": [
+        "",
+        "",
+        "\n\n【原片转写】\n"
+      ]
+    },
+    {
+      "id": 115,
+      "type": "ComfyUI-LLM Qwen Bailian",
+      "title": "④ 按卖点改写台词 JSON（可不用改写稿）",
+      "pos": [
+        2490,
+        2530
+      ],
+      "size": [
+        430,
+        700
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "name": "user_prompt",
+          "type": "STRING",
+          "link": 14,
+          "widget": {
+            "name": "user_prompt"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "links": [
+            15
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "response_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ComfyUI-LLM Qwen Bailian"
+      },
+      "widgets_values": [
+        "qwen3.8-max",
+        "low",
+        "你是中文短视频口播文案编辑。依据已提供商品事实、ASR 和角色分析写稿，保持真实角色数量、先后顺序、对话轮次、开场功能、问答关系和篇幅。\n角色不确定时明确标记待确认。不得把对话改成独白，不强行让画外音先问。商品事实仅来自用户资料，不沿用原片不属于目标商品的品牌、价格、优惠、材质和功能。\n口语自然，不堆砌、不凑字虚构；双人问答由出镜者承担主要介绍、画外音简短提问承接。\n输出 JSON：{\"needs_confirmation\":true,\"segments\":[{\"role\":\"A\",\"text\":\"台词\"}]}，角色只用 A/B。用户仍可选择保留 ASR 原台词或粘贴自己的稿件；时间由后续节点统一分配。",
+        ""
+      ]
+    },
+    {
+      "id": 116,
+      "type": "PreviewAny",
+      "title": "候选新台词｜确认后粘贴到右侧台词节点",
+      "pos": [
+        1530,
+        3650
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 15
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 117,
+      "type": "Note",
+      "title": "构美流程｜先读这里",
+      "pos": [
+        0,
+        -160
+      ],
+      "size": [
+        1400,
+        320
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "基于 20261116 原工作流规整。\n① 使用 01 素材识别与台词确认；核对角色、单品、logo。② 使用 02 生成三图：Wan2.7 Pro 正面→背面，Qwen3.0 Pro 人脸（只用原人物）。③ 用 03 加载确认的三图，粘贴台词 JSON、连接各角色音色，开启 confirmed 后生成视频。\n主流程保留所有阶段；首次使用建议分阶段，避免重复生图。每段 2–15 秒；Video Slice 设置原片起点，台词时间从该段 0 秒开始；长片逐段后用 04 拼接。\n原人物/服饰/音色及视频请重新选择本地素材。原始 logo 细节接参考编排 extras，extra_labels 逐张填写，合计最多 10 图。图像节点的 API Key/base_url 留空使用本地配置。\n只有 B 画外音发言时，台词只写 B，路由自动仅传 B 的音频1。模型不会自行确认 ASR 角色。"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      102,
+      0,
+      103,
+      0,
+      "VIDEO"
+    ],
+    [
+      2,
+      103,
+      0,
+      104,
+      0,
+      "VIDEO"
+    ],
+    [
+      3,
+      104,
+      0,
+      107,
+      0,
+      "VIDEO"
+    ],
+    [
+      4,
+      107,
+      0,
+      108,
+      0,
+      "STRING"
+    ],
+    [
+      5,
+      104,
+      0,
+      109,
+      1,
+      "VIDEO"
+    ],
+    [
+      6,
+      107,
+      0,
+      109,
+      2,
+      "STRING"
+    ],
+    [
+      7,
+      109,
+      0,
+      110,
+      0,
+      "STRING"
+    ],
+    [
+      8,
+      101,
+      0,
+      111,
+      0,
+      "IMAGE"
+    ],
+    [
+      9,
+      111,
+      0,
+      112,
+      0,
+      "STRING"
+    ],
+    [
+      10,
+      105,
+      0,
+      113,
+      0,
+      "STRING"
+    ],
+    [
+      11,
+      109,
+      0,
+      113,
+      1,
+      "STRING"
+    ],
+    [
+      12,
+      113,
+      0,
+      114,
+      0,
+      "STRING"
+    ],
+    [
+      13,
+      107,
+      0,
+      114,
+      1,
+      "STRING"
+    ],
+    [
+      14,
+      114,
+      0,
+      115,
+      2,
+      "STRING"
+    ],
+    [
+      15,
+      115,
+      0,
+      116,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "01｜原片、人物、服饰与产品资料",
+      "bounding": [
+        0,
+        220,
+        1470,
+        3500
+      ],
+      "color": "#375a7f",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "02｜素材识别与角色台词（先确认）",
+      "bounding": [
+        1500,
+        220,
+        1470,
+        4620
+      ],
+      "color": "#85623b",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.3,
+      "offset": [
+        100,
+        180
+      ]
+    },
+    "goumei_source": "20261116wan3.0口播视频复刻",
+    "goumei_staged": true
+  },
+  "version": 0.4
+}

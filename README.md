@@ -2,6 +2,8 @@
 
 阿里云百炼图像生成与编辑节点，使用当前 ComfyUI V3 API（需支持 `io.Autogrow`）。
 
+完整的构美工作流位于 [workflows/goumei](workflows/goumei/使用说明.md)：素材识别 → Wan2.7 正背面穿搭 / Qwen3.0 人脸 → 三种口播场景 → Wan3 视频及分段拼接，含规整版主图与分阶段模板。
+
 | 节点 | 模型 | 接口 |
 | --- | --- | --- |
 | 千问图像 API / Qwen Image | qwen-image-3.0-pro、qwen-image-3.0、qwen-image-2.1-pro、qwen-image-2.1-turbo | 默认 OpenAI 兼容，同步；可切换 DashScope 同步 |

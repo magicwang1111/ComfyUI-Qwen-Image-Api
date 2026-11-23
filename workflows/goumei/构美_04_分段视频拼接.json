@@ -1,0 +1,245 @@
+{
+  "id": "20f7f36c-213b-4b13-8b46-f87d4fb1d10f",
+  "revision": 0,
+  "last_node_id": 104,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 100,
+      "type": "LoadVideo",
+      "title": "第1段成片",
+      "pos": [
+        30,
+        290
+      ],
+      "size": [
+        430,
+        430
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadVideo"
+      },
+      "widgets_values": [
+        "请上传_第1段.mp4",
+        "image"
+      ]
+    },
+    {
+      "id": 101,
+      "type": "LoadVideo",
+      "title": "第2段成片",
+      "pos": [
+        510,
+        290
+      ],
+      "size": [
+        430,
+        430
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadVideo"
+      },
+      "widgets_values": [
+        "请上传_第2段.mp4",
+        "image"
+      ]
+    },
+    {
+      "id": 102,
+      "type": "ConcatenateVideo",
+      "title": "按插口顺序拼接｜保留各段原音频",
+      "pos": [
+        990,
+        290
+      ],
+      "size": [
+        430,
+        430
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "videos.video0",
+          "type": "VIDEO",
+          "link": 1
+        },
+        {
+          "name": "videos.video1",
+          "type": "VIDEO",
+          "link": 2
+        },
+        {
+          "name": "videos.video2",
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "name": "complete_audio",
+          "type": "AUDIO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ConcatenateVideo"
+      },
+      "widgets_values": [
+        "auto"
+      ]
+    },
+    {
+      "id": 103,
+      "type": "SaveVideo",
+      "title": "保存完整成片",
+      "pos": [
+        30,
+        1410
+      ],
+      "size": [
+        430,
+        430
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "video/Goumei_final",
+        "mp4",
+        "auto"
+      ]
+    },
+    {
+      "id": 104,
+      "type": "Note",
+      "title": "构美流程｜先读这里",
+      "pos": [
+        0,
+        -160
+      ],
+      "size": [
+        1400,
+        320
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "基于 20261116 原工作流规整。\n① 使用 01 素材识别与台词确认；核对角色、单品、logo。② 使用 02 生成三图：Wan2.7 Pro 正面→背面，Qwen3.0 Pro 人脸（只用原人物）。③ 用 03 加载确认的三图，粘贴台词 JSON、连接各角色音色，开启 confirmed 后生成视频。\n主流程保留所有阶段；首次使用建议分阶段，避免重复生图。每段 2–15 秒；Video Slice 设置原片起点，台词时间从该段 0 秒开始；长片逐段后用 04 拼接。\n原人物/服饰/音色及视频请重新选择本地素材。原始 logo 细节接参考编排 extras，extra_labels 逐张填写，合计最多 10 图。图像节点的 API Key/base_url 留空使用本地配置。\n只有 B 画外音发言时，台词只写 B，路由自动仅传 B 的音频1。模型不会自行确认 ASR 角色。"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      100,
+      0,
+      102,
+      0,
+      "VIDEO"
+    ],
+    [
+      2,
+      101,
+      0,
+      102,
+      1,
+      "VIDEO"
+    ],
+    [
+      3,
+      102,
+      0,
+      103,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "按时间顺序拼接已生成的片段",
+      "bounding": [
+        0,
+        220,
+        1470,
+        2380
+      ],
+      "color": "#375a7f",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.3,
+      "offset": [
+        100,
+        180
+      ]
+    },
+    "goumei_source": "20261116wan3.0口播视频复刻",
+    "goumei_staged": true
+  },
+  "version": 0.4
+}

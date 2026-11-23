@@ -1,0 +1,1719 @@
+{
+  "id": "e1ebf6d5-097b-40b9-b14d-014c24e747dc",
+  "revision": 0,
+  "last_node_id": 149,
+  "last_link_id": 61,
+  "nodes": [
+    {
+      "id": 102,
+      "type": "LoadVideo",
+      "title": "原片｜保留声音供 ASR 和角色分析",
+      "pos": [
+        30,
+        290
+      ],
+      "size": [
+        430,
+        430
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadVideo"
+      },
+      "widgets_values": [
+        "请上传_原片.mp4",
+        "image"
+      ]
+    },
+    {
+      "id": 103,
+      "type": "Video Slice",
+      "title": "原片分段｜起点秒数；每段最多15秒",
+      "pos": [
+        510,
+        290
+      ],
+      "size": [
+        430,
+        250
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Video Slice"
+      },
+      "widgets_values": [
+        0.0,
+        15.0,
+        false
+      ]
+    },
+    {
+      "id": 104,
+      "type": "Video Preprocess Validate",
+      "title": "检查视频｜2–15秒 / 分辨率 / 大小",
+      "pos": [
+        990,
+        290
+      ],
+      "size": [
+        430,
+        180
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            27,
+            28,
+            38
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "video_info",
+          "type": "STRING",
+          "links": [
+            45
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Video Preprocess Validate"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 125,
+      "type": "Video Preprocess Detect Captions",
+      "title": "字幕与平台水印定位｜每秒1帧",
+      "pos": [
+        1530,
+        290
+      ],
+      "size": [
+        430,
+        300
+      ],
+      "flags": {},
+      "order": 25,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 27
+        }
+      ],
+      "outputs": [
+        {
+          "name": "caption_boxes",
+          "type": "STRING",
+          "links": [
+            29
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "detect_report",
+          "type": "STRING",
+          "links": [
+            33
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "regions_preview",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Video Preprocess Detect Captions"
+      },
+      "widgets_values": [
+        "qwen3.8-max",
+        24,
+        1
+      ]
+    },
+    {
+      "id": 126,
+      "type": "Video Preprocess Process Captions",
+      "title": "字幕处理｜默认本地模糊，可切换IMS",
+      "pos": [
+        2010,
+        290
+      ],
+      "size": [
+        430,
+        380
+      ],
+      "flags": {},
+      "order": 26,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 28
+        },
+        {
+          "name": "caption_boxes",
+          "type": "STRING",
+          "link": 29,
+          "widget": {
+            "name": "caption_boxes"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            30
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "caption_report",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Video Preprocess Process Captions"
+      },
+      "widgets_values": [
+        "blur",
+        "",
+        "error",
+        "",
+        "algo-video-detext-new",
+        "",
+        1800
+      ]
+    },
+    {
+      "id": 127,
+      "type": "Video Preprocess Mask Faces",
+      "title": "原人物黑色遮罩｜失败中止，防止无效换脸",
+      "pos": [
+        2490,
+        290
+      ],
+      "size": [
+        430,
+        400
+      ],
+      "flags": {},
+      "order": 27,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            31
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "face_masked",
+          "type": "BOOLEAN",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "prompt_hint",
+          "type": "STRING",
+          "links": [
+            52
+          ],
+          "slot_index": 2
+        },
+        {
+          "name": "face_mask_report",
+          "type": "STRING",
+          "links": [
+            34
+          ],
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Video Preprocess Mask Faces"
+      },
+      "widgets_values": [
+        "all",
+        0.35,
+        0.5,
+        5,
+        true,
+        "error",
+        "图3",
+        "black"
+      ]
+    },
+    {
+      "id": 128,
+      "type": "GoumeiMuteVideo",
+      "title": "只给 Wan 的参考视频静音",
+      "pos": [
+        1530,
+        1410
+      ],
+      "size": [
+        430,
+        180
+      ],
+      "flags": {},
+      "order": 28,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            32
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GoumeiMuteVideo"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 129,
+      "type": "Video Preprocess Preview",
+      "title": "预处理后视频｜静音+去字幕+去脸",
+      "pos": [
+        2010,
+        1410
+      ],
+      "size": [
+        430,
+        450
+      ],
+      "flags": {},
+      "order": 29,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 32
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            56
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Video Preprocess Preview"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 130,
+      "type": "PreviewAny",
+      "title": "字幕框与识别报告",
+      "pos": [
+        2490,
+        1410
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 33
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 131,
+      "type": "PreviewAny",
+      "title": "人脸遮罩报告",
+      "pos": [
+        1530,
+        2530
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 34
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 132,
+      "type": "GoumeiReferencePack",
+      "title": "最终参考图｜编号固定、等比补白、最多10张",
+      "pos": [
+        3030,
+        290
+      ],
+      "size": [
+        430,
+        440
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "a_front",
+          "type": "IMAGE",
+          "link": 35
+        },
+        {
+          "name": "a_back",
+          "type": "IMAGE",
+          "link": 36
+        },
+        {
+          "name": "a_face",
+          "type": "IMAGE",
+          "link": 37
+        },
+        {
+          "name": "b_front",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "b_back",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "b_face",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "extras.image0",
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            39,
+            55
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "manifest",
+          "type": "STRING",
+          "links": [
+            40,
+            42,
+            48
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GoumeiReferencePack"
+      },
+      "widgets_values": [
+        "单人＋画外音",
+        "[]"
+      ],
+      "widgets_values_named": {
+        "scenario": "单人＋画外音",
+        "extra_labels": "[]"
+      }
+    },
+    {
+      "id": 133,
+      "type": "LoadImage",
+      "title": "已确认 A 正面穿搭",
+      "pos": [
+        3510,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 33,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            35
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_A正面穿搭.png",
+        "image"
+      ]
+    },
+    {
+      "id": 134,
+      "type": "LoadImage",
+      "title": "已确认 A 背面穿搭",
+      "pos": [
+        3990,
+        290
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 34,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            36
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_A背面穿搭.png",
+        "image"
+      ]
+    },
+    {
+      "id": 135,
+      "type": "LoadImage",
+      "title": "已确认 A 人脸特写",
+      "pos": [
+        3030,
+        1410
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 35,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            37
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_A人脸特写.png",
+        "image"
+      ]
+    },
+    {
+      "id": 136,
+      "type": "ComfyUI-LLM Qwen Bailian",
+      "title": "Qwen3.8 Max｜未模糊原片 + 最终参考图",
+      "pos": [
+        3510,
+        1410
+      ],
+      "size": [
+        430,
+        700
+      ],
+      "flags": {},
+      "order": 36,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 39
+        },
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 38
+        },
+        {
+          "name": "user_prompt",
+          "type": "STRING",
+          "link": 40,
+          "widget": {
+            "name": "user_prompt"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "links": [
+            41,
+            49
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "response_json",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ComfyUI-LLM Qwen Bailian"
+      },
+      "widgets_values": [
+        "qwen3.8-max",
+        "low",
+        "分析未去脸的原片及目标参考图，为人物服饰替换提供可见事实。用户信息给出图片编号映射，必须遵循。\n返回：镜头与人物朝向、主要动作、各角色目标服饰逐项描述、配饰穿戴/携带/握持关系、需调整的接触动作、logo/文字特写的单品和部位。\n服饰描述不混入动作指令。整体图决定组合，原始 logo 特写只补充同款细节，不新增单品。\n左右以人物自身为准；平铺图不能证明哪只手或哪侧肩膀携带。动作结合原片判断，不虚构不可见结构，不生成或改写台词。\n输出分为【目标穿搭】【穿戴与动作】【原始细节】。",
+        ""
+      ]
+    },
+    {
+      "id": 137,
+      "type": "PreviewAny",
+      "title": "可见服饰与实际接触关系｜不得夹带台词",
+      "pos": [
+        3990,
+        1410
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 37,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 41
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 138,
+      "type": "PreviewAny",
+      "title": "最终参考图编号映射｜logo图片必须有用途",
+      "pos": [
+        3030,
+        2530
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 38,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 42
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 139,
+      "type": "LoadAudio",
+      "title": "A｜人物音色参考",
+      "pos": [
+        30,
+        5290
+      ],
+      "size": [
+        430,
+        200
+      ],
+      "flags": {},
+      "order": 39,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            43
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        "请上传_A音色.wav",
+        "None"
+      ]
+    },
+    {
+      "id": 140,
+      "type": "TrimAudioDuration",
+      "title": "A 音色截取｜0–6秒",
+      "pos": [
+        510,
+        5290
+      ],
+      "size": [
+        430,
+        180
+      ],
+      "flags": {},
+      "order": 40,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 43
+        }
+      ],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            46
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TrimAudioDuration"
+      },
+      "widgets_values": [
+        0,
+        6
+      ]
+    },
+    {
+      "id": 141,
+      "type": "LoadAudio",
+      "title": "B｜第二位人物或画外音的音色",
+      "pos": [
+        990,
+        5290
+      ],
+      "size": [
+        430,
+        200
+      ],
+      "flags": {},
+      "order": 41,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            44
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        "请上传_B音色.wav",
+        "None"
+      ]
+    },
+    {
+      "id": 142,
+      "type": "TrimAudioDuration",
+      "title": "B 音色截取｜0–6秒",
+      "pos": [
+        30,
+        6410
+      ],
+      "size": [
+        430,
+        180
+      ],
+      "flags": {},
+      "order": 42,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 44
+        }
+      ],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            47
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TrimAudioDuration"
+      },
+      "widgets_values": [
+        0,
+        6
+      ]
+    },
+    {
+      "id": 143,
+      "type": "GoumeiDialogue",
+      "title": "人工确认点｜粘贴台词JSON，再开启confirmed",
+      "pos": [
+        510,
+        6410
+      ],
+      "size": [
+        430,
+        630
+      ],
+      "flags": {},
+      "order": 43,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video_info",
+          "type": "STRING",
+          "link": 45
+        },
+        {
+          "name": "voice_a",
+          "type": "AUDIO",
+          "link": 46
+        },
+        {
+          "name": "voice_b",
+          "type": "AUDIO",
+          "link": 47
+        }
+      ],
+      "outputs": [
+        {
+          "name": "speech_prompt",
+          "type": "STRING",
+          "links": [
+            50
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "duration",
+          "type": "*",
+          "links": [
+            60
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "audio_1",
+          "type": "AUDIO",
+          "links": [
+            57
+          ],
+          "slot_index": 2
+        },
+        {
+          "name": "audio_2",
+          "type": "AUDIO",
+          "links": [
+            58
+          ],
+          "slot_index": 3
+        },
+        {
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            51,
+            53
+          ],
+          "slot_index": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GoumeiDialogue"
+      },
+      "widgets_values": [
+        "单人＋画外音",
+        "[]",
+        "按字数连续分配",
+        false
+      ],
+      "widgets_values_named": {
+        "scenario": "单人＋画外音",
+        "dialogue_json": "[]",
+        "timing": "按字数连续分配",
+        "confirmed": false
+      }
+    },
+    {
+      "id": 144,
+      "type": "GoumeiVideoPrompt",
+      "title": "按PDF组装｜角色、三图、动作、逐句台词",
+      "pos": [
+        990,
+        6410
+      ],
+      "size": [
+        430,
+        330
+      ],
+      "flags": {},
+      "order": 44,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "manifest",
+          "type": "STRING",
+          "link": 48
+        },
+        {
+          "name": "visual_analysis",
+          "type": "STRING",
+          "link": 49
+        },
+        {
+          "name": "speech_prompt",
+          "type": "STRING",
+          "link": 50
+        },
+        {
+          "name": "dialogue_report",
+          "type": "STRING",
+          "link": 51
+        },
+        {
+          "name": "face_hint",
+          "type": "STRING",
+          "link": 52
+        }
+      ],
+      "outputs": [
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "links": [
+            54,
+            59
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GoumeiVideoPrompt"
+      },
+      "widgets_values": [
+        true,
+        "背景沿用原片；未指定替换的商品与包装保持原样。"
+      ],
+      "widgets_values_named": {
+        "captions_processed": true,
+        "scene_notes": "背景沿用原片；未指定替换的商品与包装保持原样。"
+      }
+    },
+    {
+      "id": 145,
+      "type": "PreviewAny",
+      "title": "检查最终台词时间表 / 音频映射",
+      "pos": [
+        30,
+        7530
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 45,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 53
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 146,
+      "type": "PreviewAny",
+      "title": "最终视频提示词｜完整保留确认台词",
+      "pos": [
+        510,
+        7530
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 46,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 54
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 147,
+      "type": "Wan 3.0 API Reference To Video",
+      "title": "Wan3.0｜参考视频编辑 / 720P / 不扩写",
+      "pos": [
+        990,
+        7530
+      ],
+      "size": [
+        430,
+        620
+      ],
+      "flags": {},
+      "order": 47,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference_images",
+          "type": "IMAGE",
+          "link": 55
+        },
+        {
+          "name": "reference_video_1",
+          "type": "VIDEO",
+          "link": 56
+        },
+        {
+          "name": "reference_video_2",
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "name": "reference_video_3",
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "name": "reference_video_4",
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "name": "reference_video_5",
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "name": "reference_audio_1",
+          "type": "AUDIO",
+          "link": 57
+        },
+        {
+          "name": "reference_audio_2",
+          "type": "AUDIO",
+          "link": 58
+        },
+        {
+          "name": "reference_audio_3",
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "reference_audio_4",
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "reference_audio_5",
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "link": 59,
+          "widget": {
+            "name": "prompt"
+          }
+        },
+        {
+          "name": "duration",
+          "type": "*",
+          "link": 60,
+          "widget": {
+            "name": "duration"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video_url",
+          "type": "STRING",
+          "links": [
+            61
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "video_id",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Wan 3.0 API Reference To Video"
+      },
+      "widgets_values": [
+        "3.0",
+        "",
+        "720P",
+        "9:16",
+        15,
+        "",
+        "Disabled",
+        2026,
+        "fixed",
+        "Disabled",
+        "Enabled",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 148,
+      "type": "Wan 3.0 API Preview Video",
+      "title": "成片预览与保存｜output/video",
+      "pos": [
+        30,
+        8650
+      ],
+      "size": [
+        430,
+        450
+      ],
+      "flags": {},
+      "order": 48,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video_url",
+          "type": "STRING",
+          "link": 61
+        }
+      ],
+      "outputs": [
+        {
+          "name": "file_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Wan 3.0 API Preview Video"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 149,
+      "type": "Note",
+      "title": "构美流程｜先读这里",
+      "pos": [
+        0,
+        -160
+      ],
+      "size": [
+        1400,
+        320
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "基于 20261116 原工作流规整。\n① 使用 01 素材识别与台词确认；核对角色、单品、logo。② 使用 02 生成三图：Wan2.7 Pro 正面→背面，Qwen3.0 Pro 人脸（只用原人物）。③ 用 03 加载确认的三图，粘贴台词 JSON、连接各角色音色，开启 confirmed 后生成视频。\n主流程保留所有阶段；首次使用建议分阶段，避免重复生图。每段 2–15 秒；Video Slice 设置原片起点，台词时间从该段 0 秒开始；长片逐段后用 04 拼接。\n原人物/服饰/音色及视频请重新选择本地素材。原始 logo 细节接参考编排 extras，extra_labels 逐张填写，合计最多 10 图。图像节点的 API Key/base_url 留空使用本地配置。\n只有 B 画外音发言时，台词只写 B，路由自动仅传 B 的音频1。模型不会自行确认 ASR 角色。"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      102,
+      0,
+      103,
+      0,
+      "VIDEO"
+    ],
+    [
+      2,
+      103,
+      0,
+      104,
+      0,
+      "VIDEO"
+    ],
+    [
+      27,
+      104,
+      0,
+      125,
+      0,
+      "VIDEO"
+    ],
+    [
+      28,
+      104,
+      0,
+      126,
+      0,
+      "VIDEO"
+    ],
+    [
+      29,
+      125,
+      0,
+      126,
+      1,
+      "STRING"
+    ],
+    [
+      30,
+      126,
+      0,
+      127,
+      0,
+      "VIDEO"
+    ],
+    [
+      31,
+      127,
+      0,
+      128,
+      0,
+      "VIDEO"
+    ],
+    [
+      32,
+      128,
+      0,
+      129,
+      0,
+      "VIDEO"
+    ],
+    [
+      33,
+      125,
+      1,
+      130,
+      0,
+      "STRING"
+    ],
+    [
+      34,
+      127,
+      3,
+      131,
+      0,
+      "STRING"
+    ],
+    [
+      35,
+      133,
+      0,
+      132,
+      0,
+      "IMAGE"
+    ],
+    [
+      36,
+      134,
+      0,
+      132,
+      1,
+      "IMAGE"
+    ],
+    [
+      37,
+      135,
+      0,
+      132,
+      2,
+      "IMAGE"
+    ],
+    [
+      38,
+      104,
+      0,
+      136,
+      1,
+      "VIDEO"
+    ],
+    [
+      39,
+      132,
+      0,
+      136,
+      0,
+      "IMAGE"
+    ],
+    [
+      40,
+      132,
+      1,
+      136,
+      2,
+      "STRING"
+    ],
+    [
+      41,
+      136,
+      0,
+      137,
+      0,
+      "STRING"
+    ],
+    [
+      42,
+      132,
+      1,
+      138,
+      0,
+      "STRING"
+    ],
+    [
+      43,
+      139,
+      0,
+      140,
+      0,
+      "AUDIO"
+    ],
+    [
+      44,
+      141,
+      0,
+      142,
+      0,
+      "AUDIO"
+    ],
+    [
+      45,
+      104,
+      1,
+      143,
+      0,
+      "STRING"
+    ],
+    [
+      46,
+      140,
+      0,
+      143,
+      1,
+      "AUDIO"
+    ],
+    [
+      47,
+      142,
+      0,
+      143,
+      2,
+      "AUDIO"
+    ],
+    [
+      48,
+      132,
+      1,
+      144,
+      0,
+      "STRING"
+    ],
+    [
+      49,
+      136,
+      0,
+      144,
+      1,
+      "STRING"
+    ],
+    [
+      50,
+      143,
+      0,
+      144,
+      2,
+      "STRING"
+    ],
+    [
+      51,
+      143,
+      4,
+      144,
+      3,
+      "STRING"
+    ],
+    [
+      52,
+      127,
+      2,
+      144,
+      4,
+      "STRING"
+    ],
+    [
+      53,
+      143,
+      4,
+      145,
+      0,
+      "STRING"
+    ],
+    [
+      54,
+      144,
+      0,
+      146,
+      0,
+      "STRING"
+    ],
+    [
+      55,
+      132,
+      0,
+      147,
+      0,
+      "IMAGE"
+    ],
+    [
+      56,
+      129,
+      0,
+      147,
+      1,
+      "VIDEO"
+    ],
+    [
+      57,
+      143,
+      2,
+      147,
+      6,
+      "AUDIO"
+    ],
+    [
+      58,
+      143,
+      3,
+      147,
+      7,
+      "AUDIO"
+    ],
+    [
+      59,
+      144,
+      0,
+      147,
+      11,
+      "STRING"
+    ],
+    [
+      60,
+      143,
+      1,
+      147,
+      12,
+      "*"
+    ],
+    [
+      61,
+      147,
+      0,
+      148,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "01｜原片、人物、服饰与产品资料",
+      "bounding": [
+        0,
+        220,
+        1470,
+        1260
+      ],
+      "color": "#375a7f",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "04｜参考视频预处理（保留原流程）",
+      "bounding": [
+        1500,
+        220,
+        1470,
+        3500
+      ],
+      "color": "#85623b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "05｜参考图编排与原片视觉分析",
+      "bounding": [
+        3000,
+        220,
+        1470,
+        3500
+      ],
+      "color": "#41745a",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "06｜确认台词、音色与 Wan3 视频",
+      "bounding": [
+        0,
+        5220,
+        1470,
+        4620
+      ],
+      "color": "#68507f",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.3,
+      "offset": [
+        100,
+        180
+      ]
+    },
+    "goumei_source": "20261116wan3.0口播视频复刻",
+    "goumei_staged": true
+  },
+  "version": 0.4
+}

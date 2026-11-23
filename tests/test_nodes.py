@@ -32,11 +32,13 @@ class NodeTests(unittest.TestCase):
     def test_extension_and_real_comfy_schemas(self):
         extension = asyncio.run(plugin.comfy_entrypoint())
         classes = asyncio.run(extension.get_node_list())
-        self.assertEqual(len(classes), 2)
+        self.assertEqual(len(classes), 6)
         for cls in classes:
             schema = cls.GET_SCHEMA()
             schema.validate()
             inputs = cls.INPUT_TYPES()
+            if cls not in (nodes.QwenImageAPI, nodes.Wan27ImageAPI):
+                continue
             self.assertIn("model", inputs["required"])
             self.assertEqual(schema.outputs[0].is_output_list, True)
             ref = next(item for item in schema.inputs if item.id == "reference_images")
