@@ -155,11 +155,11 @@ def dialogue_timeline(dialogue_json, duration, scenario, timing):
     if isinstance(entries, dict):
         entries = entries.get("segments")
     if not isinstance(entries, list) or not entries:
-        raise ValueError('请填写已确认台词 JSON，例如 [{"role":"A","text":"你的台词"}]。')
+        raise ValueError('台词 JSON 必须包含非空 segments 数组或台词数组，例如 [{"role":"A","text":"你的台词"}]。')
     segments = []
     for entry in entries:
         if not isinstance(entry, dict) or entry.get("role") not in ("A", "B") or not isinstance(entry.get("text"), str) or not entry["text"].strip():
-            raise ValueError("每段台词须有 role（A/B）和非空 text；ASR 说话分组须先人工确认映射到角色。")
+            raise ValueError("每段台词须有 role（A/B）和非空 text；ASR 说话分组必须先映射到角色。")
         if scenario == "单人口播" and entry["role"] != "A":
             raise ValueError("单人口播仅允许 A 发言；有 B 时请选择双人口播或单人＋画外音。")
         item = {"role": entry["role"], "text": entry["text"].strip()}
@@ -235,6 +235,41 @@ class GoumeiDialogue(io.ComfyNode):
                   "recommended_characters": [duration * 3, duration * 5]}
         routed = [voices[role] for role in speaking]
         return io.NodeOutput("\n".join(lines), duration, routed[0], routed[1] if len(routed) > 1 else None,
+                             json.dumps(report, ensure_ascii=False, indent=2))
+
+
+class GoumeiScenario(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(node_id="GoumeiScenario", display_name="构美｜选择场景", category="image/百炼 API/构美",
+            inputs=[io.Combo.Input("scenario", options=["单人口播", "单人＋画外音"], default="单人＋画外音")],
+            outputs=[io.Combo.Output("scenario", options=SCENARIOS), io.String.Output("instructions")])
+
+    @classmethod
+    def execute(cls, scenario):
+        if scenario not in ("单人口播", "单人＋画外音"):
+            raise ValueError("此五图流程仅支持单人口播或单人＋画外音；双人请使用双人模板。")
+        roles = "仅A出镜并发言，所有台词role为A。" if scenario == "单人口播" else "仅A出镜，B为画外音；根据口型和声音同步判断各句归属，允许只有B发言，不强行添加A的台词。"
+        return io.NodeOutput(scenario, f"用户选择场景：{scenario}。{roles}\n自动分析素材、选择服饰、编排台词，无需人工确认。"
+            "以五张服饰原图中整体图展示的主单品/成套穿搭为目标，细节图只补充对应同款；不要把不兼容款式混搭。"
+            "只使用可见款式、颜色、结构等事实，不编造价格、优惠、成分比例、功效或原片商品特有事实。"
+            "携带位置优先沿用原片可见的自然支撑关系，不凭平铺图推断左右。")
+
+
+class GoumeiAutoDialogue(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(node_id="GoumeiAutoDialogue", display_name="构美｜自动台词与音色路由", category="image/百炼 API/构美",
+            inputs=[io.Combo.Input("scenario", options=SCENARIOS), io.String.Input("dialogue_json", force_input=True),
+                    io.String.Input("video_info", force_input=True), io.Audio.Input("voice_a", optional=True),
+                    io.Audio.Input("voice_b", optional=True)], outputs=GoumeiDialogue.define_schema().outputs)
+
+    @classmethod
+    def execute(cls, scenario, dialogue_json, video_info, voice_a=None, voice_b=None):
+        result = GoumeiDialogue.execute(scenario, dialogue_json, video_info, "按字数连续分配", True, voice_a, voice_b).result
+        report = json_value(result[4])
+        report["mode"] = "automatic"
+        return io.NodeOutput(result[0].replace("【已确认台词】", "【自动编排台词】"), result[1], result[2], result[3],
                              json.dumps(report, ensure_ascii=False, indent=2))
 
 

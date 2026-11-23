@@ -20,10 +20,24 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(len(sources(back, 'reference_images.')), 6)
         self.assertEqual(len(sources(by_type['QwenImageAPI'], 'reference_images.')), 3)
         self.assertEqual(len(sources(by_type['GoumeiSelectLogoDetails'], 'clothes.')), 5)
-        self.assertEqual(by_type['GoumeiReferencePack']['widgets_values_named']['expected_count'], 5)
+        self.assertEqual(by_type['GoumeiReferencePack']['widgets_values'][2], 5)
         self.assertEqual(sources(by_type['Wan 3.0 API Reference To Video'], 'reference_video_1')[0]['type'], 'Video Preprocess Remove Audio')
         visual = next(node for node in nodes.values() if node['type']=='ComfyUI-LLM Qwen Bailian' and '原片 +' in node['title'])
         self.assertEqual(sources(visual, 'image')[0]['type'], 'GoumeiAnalysisSheet')
+
+    def test_master_automatically_routes_script_and_shared_scenario(self):
+        graph = json.loads((WORKFLOWS/'构美_全流程_规整版.json').read_text(encoding='utf-8'))
+        nodes = {node['id']: node for node in graph['nodes']}
+        links = {link[0]: link for link in graph['links']}
+        scenario = next(node for node in nodes.values() if node['type'] == 'GoumeiScenario')
+        dialogue = next(node for node in nodes.values() if node['type'] == 'GoumeiAutoDialogue')
+        pack = next(node for node in nodes.values() if node['type'] == 'GoumeiReferencePack')
+        for node in (dialogue, pack):
+            socket = next(item for item in node['inputs'] if item['name'] == 'scenario')
+            self.assertEqual(links[socket['link']][1], scenario['id'])
+        script = next(item for item in dialogue['inputs'] if item['name'] == 'dialogue_json')
+        self.assertEqual(nodes[links[script['link']][1]]['type'], 'ComfyUI-LLM Qwen Bailian')
+        self.assertFalse(any(node['type'] == 'GoumeiDialogue' for node in nodes.values()))
 
     def test_links_have_matching_endpoints_and_no_cycles(self):
         for path in WORKFLOWS.glob('*.json'):

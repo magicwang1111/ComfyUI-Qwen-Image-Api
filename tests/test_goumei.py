@@ -9,10 +9,33 @@ import av
 import torch
 
 from test_nodes import plugin
-from bailian_image_plugin.goumei import GoumeiReferencePack, GoumeiDialogue, GoumeiVideoPrompt, GoumeiMuteVideo, GoumeiAnalysisSheet, GoumeiSelectLogoDetails, VideoFromFile, dialogue_timeline
+from bailian_image_plugin.goumei import GoumeiReferencePack, GoumeiDialogue, GoumeiVideoPrompt, GoumeiMuteVideo, GoumeiAnalysisSheet, GoumeiSelectLogoDetails, GoumeiScenario, GoumeiAutoDialogue, VideoFromFile, dialogue_timeline
 
 
 class GoumeiTests(unittest.TestCase):
+    def test_automatic_dialogue_routes_without_confirmation(self):
+        voice = {"name": "voiceover"}
+        output = GoumeiAutoDialogue.execute("单人＋画外音", '{"segments":[{"role":"B","text":"看看这件绿色外套"}]}',
+            '{"duration":5.2}', voice_b=voice).result
+        self.assertEqual(output[1], 6)
+        self.assertIs(output[2], voice)
+        self.assertIsNone(output[3])
+        self.assertEqual(json.loads(output[4])["mode"], "automatic")
+        self.assertIn("自动编排台词", output[0])
+        self.assertNotIn("confirmed", {item.id for item in GoumeiAutoDialogue.define_schema().inputs})
+
+    def test_automatic_dialogue_rejects_invalid_roles_and_missing_voice(self):
+        for scenario, script, voices in [("单人口播", '[{"role":"B","text":"你好"}]', {"voice_b": {}}),
+                                          ("单人口播", '[{"role":"A","text":"你好"}]', {})]:
+            with self.subTest(scenario=scenario), self.assertRaises(ValueError):
+                GoumeiAutoDialogue.execute(scenario, script, '{"duration":5}', **voices)
+
+    def test_scenario_has_one_control_and_excludes_dual(self):
+        self.assertEqual(len(GoumeiScenario.define_schema().inputs), 1)
+        self.assertIn("所有台词role为A", GoumeiScenario.execute("单人口播").result[1])
+        with self.assertRaises(ValueError):
+            GoumeiScenario.execute("双人口播")
+
     def test_select_logo_returns_original_tensors_in_rank_order(self):
         originals = {f'image{i}': torch.full((1, 8+i, 8, 3), i/5) for i in range(5)}
         report = {"images": [{"index": i, "logo_text_closeup": i in (2, 5), "readable": True,
