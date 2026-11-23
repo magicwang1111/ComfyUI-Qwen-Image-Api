@@ -1,13 +1,13 @@
 {
-  "id": "6cbe241a-7eef-4b1c-aa6d-2dd372dbe61c",
+  "id": "64ac41f5-e015-4132-8cd7-6ac71861f625",
   "revision": 0,
-  "last_node_id": 146,
-  "last_link_id": 61,
+  "last_node_id": 160,
+  "last_link_id": 93,
   "nodes": [
     {
       "id": 100,
       "type": "LoadImage",
-      "title": "A｜最初的人物参考（身份与体型）",
+      "title": "模特图1｜同一人的正面参考",
       "pos": [
         30,
         290
@@ -25,8 +25,8 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            18,
-            23
+            55,
+            68
           ],
           "slot_index": 0
         },
@@ -48,7 +48,7 @@
     {
       "id": 101,
       "type": "LoadImage",
-      "title": "A｜已选择的目标服饰（单品/搭配图）",
+      "title": "服饰原图1｜目标单品/整体穿搭",
       "pos": [
         510,
         290
@@ -66,9 +66,10 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            8,
-            19,
-            22
+            58,
+            63,
+            71,
+            78
           ],
           "slot_index": 0
         },
@@ -191,9 +192,9 @@
           "links": [
             3,
             5,
-            27,
-            28,
-            38
+            22,
+            23,
+            33
           ],
           "slot_index": 0
         },
@@ -201,7 +202,7 @@
           "name": "video_info",
           "type": "STRING",
           "links": [
-            45
+            39
           ],
           "slot_index": 1
         }
@@ -232,7 +233,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            10
+            9
           ],
           "slot_index": 0
         }
@@ -265,7 +266,8 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            17
+            16,
+            77
           ],
           "slot_index": 0
         }
@@ -274,7 +276,7 @@
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "请填写采用哪些单品、对应参考图编号、区域说明及确定的携带关系。\n例如：仅替换图片2中的外套；未指定的鞋袜/配饰沿用人物参考，不新增。\n左右以人物自身为准；没有证据时不要猜测背包肩侧。"
+        "请明确采用哪些目标单品及携带方式。\n服饰原图编号1–5，对应左侧五张服饰图；模特图1–3为同一人。\n要求最终保留两张匹配目标单品的原始LOGO/文字特写。不足两张时不会凑数，请更换素材或人工确认。"
       ]
     },
     {
@@ -306,7 +308,7 @@
           "links": [
             4,
             6,
-            13
+            12
           ],
           "slot_index": 0
         },
@@ -402,7 +404,7 @@
           "type": "STRING",
           "links": [
             7,
-            11
+            10
           ],
           "slot_index": 0
         },
@@ -461,7 +463,7 @@
     {
       "id": 111,
       "type": "ComfyUI-LLM Qwen Bailian",
-      "title": "③ Qwen3.8 Max｜识别单品与 logo 特写",
+      "title": "Qwen3.8 Max｜五张服饰逐一识别与LOGO评分",
       "pos": [
         2010,
         1410
@@ -477,7 +479,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 8
+          "link": 76
         },
         {
           "name": "video",
@@ -487,7 +489,7 @@
         {
           "name": "user_prompt",
           "type": "STRING",
-          "link": null,
+          "link": 77,
           "widget": {
             "name": "user_prompt"
           }
@@ -498,7 +500,8 @@
           "name": "text",
           "type": "STRING",
           "links": [
-            9
+            8,
+            83
           ],
           "slot_index": 0
         },
@@ -515,7 +518,7 @@
       "widgets_values": [
         "qwen3.8-max",
         "low",
-        "分析服饰参考图（属于角色 A）。区分完整单品、同款局部细节和多件搭配图。\n对每件返回名称、类别、归一化位置框、可见颜色/款式/结构、用途（整体或局部）、不确定项。\n只有图片主要展示清晰 logo/字母/文字时标记 logo_text_closeup=true；面料、缝线、口袋以及小面积标识不得自动归类。不要猜测文字。\n若有多件或类别不明，返回 needs_confirmation=true 与候选单品，等待用户选择；不要自动替换所有单品。\n输出 JSON：{\"role\":\"A\",\"items\":[],\"logo_text_closeup\":false,\"needs_confirmation\":true,\"questions\":[]}。",
+        "输入是一张带 IMAGE 1–5 标签的分析预览，五个格子依次对应五张原始服饰图。它不是单件商品拼图，务必按标签分别识别。\n逐一描述各图可见单品、位置、用途和是否匹配用户确认的替换单品。\n只有该原图主要清晰展示LOGO/文字/字母局部特写时 logo_text_closeup=true；普通整体衣服图、面料、缝线、口袋和小面积商标不要算特写。readable 表示标识形状/文字足够清楚，不得猜测看不清的文字。matches_selected_item 表示属于用户已确认目标单品；选择尚不明确或不能证明同款时设false。\nconfidence 为上述判断的可信度（0到1），不能为凑两张而抬高分数。不足两张清晰匹配特写时如实说明。\n仅输出一个JSON对象，images 必须恰好含原始编号1–5，格式：\n{\"images\":[{\"index\":1,\"description\":\"对应单品、标识位置与可见细节\",\"items\":[],\"logo_text_closeup\":false,\"readable\":false,\"matches_selected_item\":false,\"confidence\":0.5}],\"needs_confirmation\":true,\"questions\":[]}。\n示例仅展示一项，实际必须完整列出五项。不要把原图裁剪后产生的新图或AI生成图作为选择结果。",
         ""
       ]
     },
@@ -538,7 +541,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 9
+          "link": 8
         }
       ],
       "outputs": [
@@ -573,7 +576,7 @@
         {
           "name": "string_a",
           "type": "STRING",
-          "link": 10,
+          "link": 9,
           "widget": {
             "name": "string_a"
           }
@@ -581,7 +584,7 @@
         {
           "name": "string_b",
           "type": "STRING",
-          "link": 11,
+          "link": 10,
           "widget": {
             "name": "string_b"
           }
@@ -592,7 +595,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            12
+            11
           ],
           "slot_index": 0
         }
@@ -625,7 +628,7 @@
         {
           "name": "string_a",
           "type": "STRING",
-          "link": 12,
+          "link": 11,
           "widget": {
             "name": "string_a"
           }
@@ -633,7 +636,7 @@
         {
           "name": "string_b",
           "type": "STRING",
-          "link": 13,
+          "link": 12,
           "widget": {
             "name": "string_b"
           }
@@ -644,7 +647,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            14
+            13
           ],
           "slot_index": 0
         }
@@ -687,7 +690,7 @@
         {
           "name": "user_prompt",
           "type": "STRING",
-          "link": 14,
+          "link": 13,
           "widget": {
             "name": "user_prompt"
           }
@@ -698,7 +701,7 @@
           "name": "text",
           "type": "STRING",
           "links": [
-            15
+            14
           ],
           "slot_index": 0
         },
@@ -738,7 +741,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 15
+          "link": 14
         }
       ],
       "outputs": [
@@ -775,7 +778,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            16
+            15
           ],
           "slot_index": 0
         }
@@ -784,7 +787,7 @@
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "根据人物与目标服饰参考生成同一角色的正面全身穿搭图。图片1是人物身份和体型，图片2及后续图片是已确认目标服饰。\n画面仅从颈部以下到鞋底，不展示人脸。正面站立，身体比例自然，完整展示衣物、手部和鞋子，不裁切。\n按已确认单品替换；整体图确定轮廓、版型和穿搭关系，细节图仅补充同一单品对应细节。保持颜色、材质、衣长、领型、门襟、袖口、口袋及鞋子结构，不混合款式、不新增重复单品。\n正常穿着层次、自然垂坠与合理体积，配饰有合理穿戴、支撑或握持关系。简洁背景，单张正面参考，不生成拼图、文字或展示板。\n【已确认单品与携带约束优先于模型推测】"
+        "根据人物与目标服饰参考生成同一角色的正面全身穿搭图。图片1–3是同一人的身份、体型与多角度参考；图片4–8依次对应原始服饰图1–5。原始服饰图编号与本请求图片编号相差3，请按此对应。\n画面仅从颈部以下到鞋底，不展示人脸。正面站立，身体比例自然，完整展示衣物、手部和鞋子，不裁切。\n按已确认单品替换；整体图确定轮廓、版型和穿搭关系，细节图仅补充同一单品对应细节。保持颜色、材质、衣长、领型、门襟、袖口、口袋及鞋子结构，不混合款式、不新增重复单品。\n正常穿着层次、自然垂坠与合理体积，配饰有合理穿戴、支撑或握持关系。简洁背景，单张正面参考，不生成拼图、文字或展示板。\n【已确认单品与携带约束优先于模型推测】"
       ]
     },
     {
@@ -806,7 +809,7 @@
         {
           "name": "string_a",
           "type": "STRING",
-          "link": 16,
+          "link": 15,
           "widget": {
             "name": "string_a"
           }
@@ -814,7 +817,7 @@
         {
           "name": "string_b",
           "type": "STRING",
-          "link": 17,
+          "link": 16,
           "widget": {
             "name": "string_b"
           }
@@ -825,7 +828,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            20
+            17
           ],
           "slot_index": 0
         }
@@ -842,7 +845,7 @@
     {
       "id": 119,
       "type": "Wan27ImageAPI",
-      "title": "A 正面｜Wan2.7 Image Pro",
+      "title": "A 正面｜3张模特＋5张衣服 / Wan2.7 Pro",
       "pos": [
         3990,
         290
@@ -858,25 +861,50 @@
         {
           "name": "reference_images.image0",
           "type": "IMAGE",
-          "link": 18
+          "link": 55
         },
         {
           "name": "reference_images.image1",
           "type": "IMAGE",
-          "link": 19
+          "link": 56
         },
         {
           "name": "reference_images.image2",
           "type": "IMAGE",
-          "link": null
+          "link": 57
         },
         {
           "name": "prompt",
           "type": "STRING",
-          "link": 20,
+          "link": 17,
           "widget": {
             "name": "prompt"
           }
+        },
+        {
+          "name": "reference_images.image3",
+          "type": "IMAGE",
+          "link": 58
+        },
+        {
+          "name": "reference_images.image4",
+          "type": "IMAGE",
+          "link": 59
+        },
+        {
+          "name": "reference_images.image5",
+          "type": "IMAGE",
+          "link": 60
+        },
+        {
+          "name": "reference_images.image6",
+          "type": "IMAGE",
+          "link": 61
+        },
+        {
+          "name": "reference_images.image7",
+          "type": "IMAGE",
+          "link": 62
         }
       ],
       "outputs": [
@@ -884,9 +912,9 @@
           "name": "images",
           "type": "IMAGE",
           "links": [
-            21,
-            24,
-            35
+            18,
+            19,
+            30
           ],
           "slot_index": 0
         },
@@ -947,7 +975,7 @@
     {
       "id": 120,
       "type": "Wan27ImageAPI",
-      "title": "A 背面｜必须依赖正面图",
+      "title": "A 背面｜正面图＋5张原始衣服",
       "pos": [
         3030,
         1410
@@ -963,17 +991,32 @@
         {
           "name": "reference_images.image0",
           "type": "IMAGE",
-          "link": 21
+          "link": 18
         },
         {
           "name": "reference_images.image1",
           "type": "IMAGE",
-          "link": 22
+          "link": 63
         },
         {
           "name": "reference_images.image2",
           "type": "IMAGE",
-          "link": null
+          "link": 64
+        },
+        {
+          "name": "reference_images.image3",
+          "type": "IMAGE",
+          "link": 65
+        },
+        {
+          "name": "reference_images.image4",
+          "type": "IMAGE",
+          "link": 66
+        },
+        {
+          "name": "reference_images.image5",
+          "type": "IMAGE",
+          "link": 67
         }
       ],
       "outputs": [
@@ -981,8 +1024,8 @@
           "name": "images",
           "type": "IMAGE",
           "links": [
-            25,
-            36
+            20,
+            31
           ],
           "slot_index": 0
         },
@@ -1004,7 +1047,7 @@
       },
       "widgets_values": [
         "wan2.7-image-pro",
-        "图片1为已生成并确认的正面穿搭图，是同一人体型、服饰组合、颜色、长度、鞋子款式的主要依据。图片2为原始服饰参考，仅在明确可见时补充结构。\n生成同一人物同一套服饰的背面全身图，画面仅从颈部以下至鞋底，不展示人脸。背向镜头站立，完整展示衣物、手部和鞋子。\n正背面必须是同一件外套、同一条裤子、同款鞋袜和同一配饰。不得重新设计鞋子，不改变鞋底、鞋帮高度、鞋跟、颜色或装饰。\n有明确背面素材时按素材还原；没有依据时不凭空增加图案、文字、口袋或装饰，不把正面 logo 复制到背面。\n配饰左右以人物自身为准，不因画面左右变化而换肩换手。保持穿戴层次、单品数量与携带关系。简洁背景，单张背面参考，不生成拼图或文字。",
+        "图片1为已生成并确认的正面穿搭图，是同一人体型、服饰组合、颜色、长度、鞋子款式的主要依据。图片2–6依次对应原始服饰图1–5；仅在明确可见时补充对应服饰与背面结构。\n生成同一人物同一套服饰的背面全身图，画面仅从颈部以下至鞋底，不展示人脸。背向镜头站立，完整展示衣物、手部和鞋子。\n正背面必须是同一件外套、同一条裤子、同款鞋袜和同一配饰。不得重新设计鞋子，不改变鞋底、鞋帮高度、鞋跟、颜色或装饰。\n有明确背面素材时按素材还原；没有依据时不凭空增加图案、文字、口袋或装饰，不把正面 logo 复制到背面。\n配饰左右以人物自身为准，不因画面左右变化而换肩换手。保持穿戴层次、单品数量与携带关系。简洁背景，单张背面参考，不生成拼图或文字。",
         "async",
         "1536*2048",
         false,
@@ -1023,7 +1066,7 @@
       ],
       "widgets_values_named": {
         "model": "wan2.7-image-pro",
-        "prompt": "图片1为已生成并确认的正面穿搭图，是同一人体型、服饰组合、颜色、长度、鞋子款式的主要依据。图片2为原始服饰参考，仅在明确可见时补充结构。\n生成同一人物同一套服饰的背面全身图，画面仅从颈部以下至鞋底，不展示人脸。背向镜头站立，完整展示衣物、手部和鞋子。\n正背面必须是同一件外套、同一条裤子、同款鞋袜和同一配饰。不得重新设计鞋子，不改变鞋底、鞋帮高度、鞋跟、颜色或装饰。\n有明确背面素材时按素材还原；没有依据时不凭空增加图案、文字、口袋或装饰，不把正面 logo 复制到背面。\n配饰左右以人物自身为准，不因画面左右变化而换肩换手。保持穿戴层次、单品数量与携带关系。简洁背景，单张背面参考，不生成拼图或文字。",
+        "prompt": "图片1为已生成并确认的正面穿搭图，是同一人体型、服饰组合、颜色、长度、鞋子款式的主要依据。图片2–6依次对应原始服饰图1–5；仅在明确可见时补充对应服饰与背面结构。\n生成同一人物同一套服饰的背面全身图，画面仅从颈部以下至鞋底，不展示人脸。背向镜头站立，完整展示衣物、手部和鞋子。\n正背面必须是同一件外套、同一条裤子、同款鞋袜和同一配饰。不得重新设计鞋子，不改变鞋底、鞋帮高度、鞋跟、颜色或装饰。\n有明确背面素材时按素材还原；没有依据时不凭空增加图案、文字、口袋或装饰，不把正面 logo 复制到背面。\n配饰左右以人物自身为准，不因画面左右变化而换肩换手。保持穿戴层次、单品数量与携带关系。简洁背景，单张背面参考，不生成拼图或文字。",
         "call_mode": "async",
         "size": "1536*2048",
         "enable_sequential": false,
@@ -1043,7 +1086,7 @@
     {
       "id": 121,
       "type": "QwenImageAPI",
-      "title": "A 人脸特写｜Qwen3.0 Pro / 仅原人物",
+      "title": "A 人脸特写｜仅3张原始模特图 / Qwen3.0 Pro",
       "pos": [
         3510,
         1410
@@ -1059,12 +1102,17 @@
         {
           "name": "reference_images.image0",
           "type": "IMAGE",
-          "link": 23
+          "link": 68
         },
         {
           "name": "reference_images.image1",
           "type": "IMAGE",
-          "link": null
+          "link": 69
+        },
+        {
+          "name": "reference_images.image2",
+          "type": "IMAGE",
+          "link": 70
         }
       ],
       "outputs": [
@@ -1072,8 +1120,8 @@
           "name": "images",
           "type": "IMAGE",
           "links": [
-            26,
-            37
+            21,
+            32
           ],
           "slot_index": 0
         },
@@ -1150,7 +1198,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 24
+          "link": 19
         }
       ],
       "outputs": [],
@@ -1180,7 +1228,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 25
+          "link": 20
         }
       ],
       "outputs": [],
@@ -1210,7 +1258,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 26
+          "link": 21
         }
       ],
       "outputs": [],
@@ -1227,7 +1275,7 @@
       "title": "字幕与平台水印定位｜每秒1帧",
       "pos": [
         30,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1240,7 +1288,7 @@
         {
           "name": "video",
           "type": "VIDEO",
-          "link": 27
+          "link": 22
         }
       ],
       "outputs": [
@@ -1248,7 +1296,7 @@
           "name": "caption_boxes",
           "type": "STRING",
           "links": [
-            29
+            24
           ],
           "slot_index": 0
         },
@@ -1256,7 +1304,7 @@
           "name": "detect_report",
           "type": "STRING",
           "links": [
-            33
+            28
           ],
           "slot_index": 1
         },
@@ -1282,7 +1330,7 @@
       "title": "字幕处理｜默认本地模糊，可切换IMS",
       "pos": [
         510,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1295,12 +1343,12 @@
         {
           "name": "video",
           "type": "VIDEO",
-          "link": 28
+          "link": 23
         },
         {
           "name": "caption_boxes",
           "type": "STRING",
-          "link": 29,
+          "link": 24,
           "widget": {
             "name": "caption_boxes"
           }
@@ -1311,7 +1359,7 @@
           "name": "video",
           "type": "VIDEO",
           "links": [
-            30
+            25
           ],
           "slot_index": 0
         },
@@ -1341,7 +1389,7 @@
       "title": "原人物黑色遮罩｜失败中止，防止无效换脸",
       "pos": [
         990,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1354,7 +1402,7 @@
         {
           "name": "video",
           "type": "VIDEO",
-          "link": 30
+          "link": 25
         }
       ],
       "outputs": [
@@ -1362,7 +1410,7 @@
           "name": "video",
           "type": "VIDEO",
           "links": [
-            31
+            26
           ],
           "slot_index": 0
         },
@@ -1376,7 +1424,7 @@
           "name": "prompt_hint",
           "type": "STRING",
           "links": [
-            52
+            46
           ],
           "slot_index": 2
         },
@@ -1384,7 +1432,7 @@
           "name": "face_mask_report",
           "type": "STRING",
           "links": [
-            34
+            29
           ],
           "slot_index": 3
         }
@@ -1405,11 +1453,11 @@
     },
     {
       "id": 128,
-      "type": "GoumeiMuteVideo",
-      "title": "只给 Wan 的参考视频静音",
+      "type": "Video Preprocess Remove Audio",
+      "title": "移除全部输入音轨｜FFmpeg流复制＋验证静音",
       "pos": [
         30,
-        6410
+        7350
       ],
       "size": [
         430,
@@ -1422,7 +1470,7 @@
         {
           "name": "video",
           "type": "VIDEO",
-          "link": 31
+          "link": 26
         }
       ],
       "outputs": [
@@ -1430,16 +1478,24 @@
           "name": "video",
           "type": "VIDEO",
           "links": [
-            32
+            27,
+            92
           ],
           "slot_index": 0
+        },
+        {
+          "name": "audio_report",
+          "type": "STRING",
+          "links": [
+            93
+          ],
+          "slot_index": 1
         }
       ],
       "properties": {
-        "Node name for S&R": "GoumeiMuteVideo"
+        "Node name for S&R": "Video Preprocess Remove Audio"
       },
-      "widgets_values": [],
-      "widgets_values_named": {}
+      "widgets_values": []
     },
     {
       "id": 129,
@@ -1447,7 +1503,7 @@
       "title": "预处理后视频｜静音+去字幕+去脸",
       "pos": [
         510,
-        6410
+        7350
       ],
       "size": [
         430,
@@ -1460,16 +1516,14 @@
         {
           "name": "video",
           "type": "VIDEO",
-          "link": 32
+          "link": 27
         }
       ],
       "outputs": [
         {
           "name": "video",
           "type": "VIDEO",
-          "links": [
-            56
-          ],
+          "links": null,
           "slot_index": 0
         }
       ],
@@ -1484,7 +1538,7 @@
       "title": "字幕框与识别报告",
       "pos": [
         990,
-        6410
+        7350
       ],
       "size": [
         430,
@@ -1497,7 +1551,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 33
+          "link": 28
         }
       ],
       "outputs": [
@@ -1519,7 +1573,7 @@
       "title": "人脸遮罩报告",
       "pos": [
         30,
-        7530
+        8470
       ],
       "size": [
         430,
@@ -1532,7 +1586,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 34
+          "link": 29
         }
       ],
       "outputs": [
@@ -1551,10 +1605,10 @@
     {
       "id": 132,
       "type": "GoumeiReferencePack",
-      "title": "最终参考图｜编号固定、等比补白、最多10张",
+      "title": "最终严格5张｜正面、背面、人脸、原始细节1、2",
       "pos": [
         1530,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1567,17 +1621,17 @@
         {
           "name": "a_front",
           "type": "IMAGE",
-          "link": 35
+          "link": 30
         },
         {
           "name": "a_back",
           "type": "IMAGE",
-          "link": 36
+          "link": 31
         },
         {
           "name": "a_face",
           "type": "IMAGE",
-          "link": 37
+          "link": 32
         },
         {
           "name": "b_front",
@@ -1597,7 +1651,20 @@
         {
           "name": "extras.image0",
           "type": "IMAGE",
-          "link": null
+          "link": 87
+        },
+        {
+          "name": "extras.image1",
+          "type": "IMAGE",
+          "link": 88
+        },
+        {
+          "name": "extra_labels",
+          "type": "STRING",
+          "link": 89,
+          "widget": {
+            "name": "extra_labels"
+          }
         }
       ],
       "outputs": [
@@ -1605,8 +1672,8 @@
           "name": "images",
           "type": "IMAGE",
           "links": [
-            39,
-            55
+            49,
+            90
           ],
           "slot_index": 0
         },
@@ -1614,9 +1681,9 @@
           "name": "manifest",
           "type": "STRING",
           "links": [
-            40,
-            42,
-            48
+            34,
+            36,
+            42
           ],
           "slot_index": 1
         }
@@ -1626,11 +1693,13 @@
       },
       "widgets_values": [
         "单人＋画外音",
-        "[]"
+        "[]",
+        5
       ],
       "widgets_values_named": {
         "scenario": "单人＋画外音",
-        "extra_labels": "[]"
+        "extra_labels": "[]",
+        "expected_count": 5
       }
     },
     {
@@ -1639,7 +1708,7 @@
       "title": "Qwen3.8 Max｜未模糊原片 + 最终参考图",
       "pos": [
         2010,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1652,17 +1721,17 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 39
+          "link": 91
         },
         {
           "name": "video",
           "type": "VIDEO",
-          "link": 38
+          "link": 33
         },
         {
           "name": "user_prompt",
           "type": "STRING",
-          "link": 40,
+          "link": 34,
           "widget": {
             "name": "user_prompt"
           }
@@ -1673,8 +1742,8 @@
           "name": "text",
           "type": "STRING",
           "links": [
-            41,
-            49
+            35,
+            43
           ],
           "slot_index": 0
         },
@@ -1691,7 +1760,7 @@
       "widgets_values": [
         "qwen3.8-max",
         "low",
-        "分析未去脸的原片及目标参考图，为人物服饰替换提供可见事实。用户信息给出图片编号映射，必须遵循。\n返回：镜头与人物朝向、主要动作、各角色目标服饰逐项描述、配饰穿戴/携带/握持关系、需调整的接触动作、logo/文字特写的单品和部位。\n服饰描述不混入动作指令。整体图决定组合，原始 logo 特写只补充同款细节，不新增单品。\n左右以人物自身为准；平铺图不能证明哪只手或哪侧肩膀携带。动作结合原片判断，不虚构不可见结构，不生成或改写台词。\n输出分为【目标穿搭】【穿戴与动作】【原始细节】。",
+        "分析未去脸的原片及目标参考图，为人物服饰替换提供可见事实。用户信息给出图片编号映射，必须遵循。\n返回：镜头与人物朝向、主要动作、各角色目标服饰逐项描述、配饰穿戴/携带/握持关系、需调整的接触动作、logo/文字特写的单品和部位。\n服饰描述不混入动作指令。整体图决定组合，原始 logo 特写只补充同款细节，不新增单品。\n左右以人物自身为准；平铺图不能证明哪只手或哪侧肩膀携带。动作结合原片判断，不虚构不可见结构，不生成或改写台词。\n输出分为【目标穿搭】【穿戴与动作】【原始细节】。\n输入分析图含编号IMAGE 1–5的格子，与用户提供的图片映射一一对应；分别分析，不把格子间白边当作场景。",
         ""
       ]
     },
@@ -1701,7 +1770,7 @@
       "title": "可见服饰与实际接触关系｜不得夹带台词",
       "pos": [
         2490,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1714,7 +1783,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 41
+          "link": 35
         }
       ],
       "outputs": [
@@ -1736,7 +1805,7 @@
       "title": "最终参考图编号映射｜logo图片必须有用途",
       "pos": [
         1530,
-        6410
+        7350
       ],
       "size": [
         430,
@@ -1749,7 +1818,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 42
+          "link": 36
         }
       ],
       "outputs": [
@@ -1771,7 +1840,7 @@
       "title": "A｜人物音色参考",
       "pos": [
         3030,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1786,7 +1855,7 @@
           "name": "AUDIO",
           "type": "AUDIO",
           "links": [
-            43
+            37
           ],
           "slot_index": 0
         }
@@ -1805,7 +1874,7 @@
       "title": "A 音色截取｜0–6秒",
       "pos": [
         3510,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1818,7 +1887,7 @@
         {
           "name": "audio",
           "type": "AUDIO",
-          "link": 43
+          "link": 37
         }
       ],
       "outputs": [
@@ -1826,7 +1895,7 @@
           "name": "AUDIO",
           "type": "AUDIO",
           "links": [
-            46
+            40
           ],
           "slot_index": 0
         }
@@ -1845,7 +1914,7 @@
       "title": "B｜第二位人物或画外音的音色",
       "pos": [
         3990,
-        5290
+        6230
       ],
       "size": [
         430,
@@ -1860,7 +1929,7 @@
           "name": "AUDIO",
           "type": "AUDIO",
           "links": [
-            44
+            38
           ],
           "slot_index": 0
         }
@@ -1879,7 +1948,7 @@
       "title": "B 音色截取｜0–6秒",
       "pos": [
         3030,
-        6410
+        7350
       ],
       "size": [
         430,
@@ -1892,7 +1961,7 @@
         {
           "name": "audio",
           "type": "AUDIO",
-          "link": 44
+          "link": 38
         }
       ],
       "outputs": [
@@ -1900,7 +1969,7 @@
           "name": "AUDIO",
           "type": "AUDIO",
           "links": [
-            47
+            41
           ],
           "slot_index": 0
         }
@@ -1919,7 +1988,7 @@
       "title": "人工确认点｜粘贴台词JSON，再开启confirmed",
       "pos": [
         3510,
-        6410
+        7350
       ],
       "size": [
         430,
@@ -1932,17 +2001,17 @@
         {
           "name": "video_info",
           "type": "STRING",
-          "link": 45
+          "link": 39
         },
         {
           "name": "voice_a",
           "type": "AUDIO",
-          "link": 46
+          "link": 40
         },
         {
           "name": "voice_b",
           "type": "AUDIO",
-          "link": 47
+          "link": 41
         }
       ],
       "outputs": [
@@ -1950,7 +2019,7 @@
           "name": "speech_prompt",
           "type": "STRING",
           "links": [
-            50
+            44
           ],
           "slot_index": 0
         },
@@ -1958,7 +2027,7 @@
           "name": "duration",
           "type": "*",
           "links": [
-            60
+            53
           ],
           "slot_index": 1
         },
@@ -1966,7 +2035,7 @@
           "name": "audio_1",
           "type": "AUDIO",
           "links": [
-            57
+            50
           ],
           "slot_index": 2
         },
@@ -1974,7 +2043,7 @@
           "name": "audio_2",
           "type": "AUDIO",
           "links": [
-            58
+            51
           ],
           "slot_index": 3
         },
@@ -1982,8 +2051,8 @@
           "name": "report",
           "type": "STRING",
           "links": [
-            51,
-            53
+            45,
+            47
           ],
           "slot_index": 4
         }
@@ -2010,7 +2079,7 @@
       "title": "按PDF组装｜角色、三图、动作、逐句台词",
       "pos": [
         3990,
-        6410
+        7350
       ],
       "size": [
         430,
@@ -2023,27 +2092,27 @@
         {
           "name": "manifest",
           "type": "STRING",
-          "link": 48
+          "link": 42
         },
         {
           "name": "visual_analysis",
           "type": "STRING",
-          "link": 49
+          "link": 43
         },
         {
           "name": "speech_prompt",
           "type": "STRING",
-          "link": 50
+          "link": 44
         },
         {
           "name": "dialogue_report",
           "type": "STRING",
-          "link": 51
+          "link": 45
         },
         {
           "name": "face_hint",
           "type": "STRING",
-          "link": 52
+          "link": 46
         }
       ],
       "outputs": [
@@ -2051,8 +2120,8 @@
           "name": "prompt",
           "type": "STRING",
           "links": [
-            54,
-            59
+            48,
+            52
           ],
           "slot_index": 0
         }
@@ -2075,7 +2144,7 @@
       "title": "检查最终台词时间表 / 音频映射",
       "pos": [
         3030,
-        7530
+        8470
       ],
       "size": [
         430,
@@ -2088,7 +2157,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 53
+          "link": 47
         }
       ],
       "outputs": [
@@ -2110,7 +2179,7 @@
       "title": "最终视频提示词｜完整保留确认台词",
       "pos": [
         3510,
-        7530
+        8470
       ],
       "size": [
         430,
@@ -2123,7 +2192,7 @@
         {
           "name": "source",
           "type": "*",
-          "link": 54
+          "link": 48
         }
       ],
       "outputs": [
@@ -2145,7 +2214,7 @@
       "title": "Wan3.0｜参考视频编辑 / 720P / 不扩写",
       "pos": [
         3990,
-        7530
+        8470
       ],
       "size": [
         430,
@@ -2158,12 +2227,12 @@
         {
           "name": "reference_images",
           "type": "IMAGE",
-          "link": 55
+          "link": 49
         },
         {
           "name": "reference_video_1",
           "type": "VIDEO",
-          "link": 56
+          "link": 92
         },
         {
           "name": "reference_video_2",
@@ -2188,12 +2257,12 @@
         {
           "name": "reference_audio_1",
           "type": "AUDIO",
-          "link": 57
+          "link": 50
         },
         {
           "name": "reference_audio_2",
           "type": "AUDIO",
-          "link": 58
+          "link": 51
         },
         {
           "name": "reference_audio_3",
@@ -2213,7 +2282,7 @@
         {
           "name": "prompt",
           "type": "STRING",
-          "link": 59,
+          "link": 52,
           "widget": {
             "name": "prompt"
           }
@@ -2221,7 +2290,7 @@
         {
           "name": "duration",
           "type": "*",
-          "link": 60,
+          "link": 53,
           "widget": {
             "name": "duration"
           }
@@ -2232,7 +2301,7 @@
           "name": "video_url",
           "type": "STRING",
           "links": [
-            61
+            54
           ],
           "slot_index": 0
         },
@@ -2274,7 +2343,7 @@
       "title": "成片预览与保存｜output/video",
       "pos": [
         3030,
-        8650
+        9590
       ],
       "size": [
         430,
@@ -2287,7 +2356,7 @@
         {
           "name": "video_url",
           "type": "STRING",
-          "link": 61
+          "link": 54
         }
       ],
       "outputs": [
@@ -2304,7 +2373,576 @@
       "widgets_values": []
     },
     {
-      "id": 146,
+      "id": 147,
+      "type": "LoadImage",
+      "title": "模特图2｜同一人的补充角度",
+      "pos": [
+        510,
+        2530
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 46,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            56,
+            69
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_模特图2.png",
+        "image"
+      ]
+    },
+    {
+      "id": 148,
+      "type": "LoadImage",
+      "title": "模特图3｜同一人的补充角度",
+      "pos": [
+        990,
+        2530
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 47,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            57,
+            70
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_模特图3.png",
+        "image"
+      ]
+    },
+    {
+      "id": 149,
+      "type": "LoadImage",
+      "title": "服饰原图2｜单品/背面/LOGO细节",
+      "pos": [
+        30,
+        3650
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 48,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            59,
+            64,
+            72,
+            79
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_服饰原图2.png",
+        "image"
+      ]
+    },
+    {
+      "id": 150,
+      "type": "LoadImage",
+      "title": "服饰原图3｜单品/背面/LOGO细节",
+      "pos": [
+        510,
+        3650
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 49,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            60,
+            65,
+            73,
+            80
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_服饰原图3.png",
+        "image"
+      ]
+    },
+    {
+      "id": 151,
+      "type": "LoadImage",
+      "title": "服饰原图4｜单品/背面/LOGO细节",
+      "pos": [
+        990,
+        3650
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 50,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            61,
+            66,
+            74,
+            81
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_服饰原图4.png",
+        "image"
+      ]
+    },
+    {
+      "id": 152,
+      "type": "LoadImage",
+      "title": "服饰原图5｜单品/背面/LOGO细节",
+      "pos": [
+        30,
+        4770
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 51,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            62,
+            67,
+            75,
+            82
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "请上传_服饰原图5.png",
+        "image"
+      ]
+    },
+    {
+      "id": 153,
+      "type": "GoumeiAnalysisSheet",
+      "title": "五张衣服带编号分析预览｜只送Qwen分析",
+      "pos": [
+        2010,
+        3650
+      ],
+      "size": [
+        430,
+        280
+      ],
+      "flags": {},
+      "order": 52,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images.image0",
+          "type": "IMAGE",
+          "link": 71
+        },
+        {
+          "name": "images.image1",
+          "type": "IMAGE",
+          "link": 72
+        },
+        {
+          "name": "images.image2",
+          "type": "IMAGE",
+          "link": 73
+        },
+        {
+          "name": "images.image3",
+          "type": "IMAGE",
+          "link": 74
+        },
+        {
+          "name": "images.image4",
+          "type": "IMAGE",
+          "link": 75
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sheet",
+          "type": "IMAGE",
+          "links": [
+            76
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GoumeiAnalysisSheet"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 154,
+      "type": "GoumeiSelectLogoDetails",
+      "title": "从原图1–5选两张LOGO特写｜不足则停止",
+      "pos": [
+        2490,
+        3650
+      ],
+      "size": [
+        430,
+        350
+      ],
+      "flags": {},
+      "order": 53,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "analysis_json",
+          "type": "STRING",
+          "link": 83
+        },
+        {
+          "name": "clothes.image0",
+          "type": "IMAGE",
+          "link": 78
+        },
+        {
+          "name": "clothes.image1",
+          "type": "IMAGE",
+          "link": 79
+        },
+        {
+          "name": "clothes.image2",
+          "type": "IMAGE",
+          "link": 80
+        },
+        {
+          "name": "clothes.image3",
+          "type": "IMAGE",
+          "link": 81
+        },
+        {
+          "name": "clothes.image4",
+          "type": "IMAGE",
+          "link": 82
+        }
+      ],
+      "outputs": [
+        {
+          "name": "detail_1",
+          "type": "IMAGE",
+          "links": [
+            85,
+            87
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "detail_2",
+          "type": "IMAGE",
+          "links": [
+            86,
+            88
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "labels",
+          "type": "STRING",
+          "links": [
+            89
+          ],
+          "slot_index": 2
+        },
+        {
+          "name": "selection_report",
+          "type": "STRING",
+          "links": [
+            84
+          ],
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GoumeiSelectLogoDetails"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "widgets_values_named": {
+        "manual_indices": ""
+      }
+    },
+    {
+      "id": 155,
+      "type": "PreviewAny",
+      "title": "自动/手动选择报告｜核对两个原图编号",
+      "pos": [
+        1530,
+        4770
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 54,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 84
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 156,
+      "type": "PreviewImage",
+      "title": "选中的原始LOGO细节1｜未生成、未裁剪",
+      "pos": [
+        2010,
+        4770
+      ],
+      "size": [
+        430,
+        460
+      ],
+      "flags": {},
+      "order": 55,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 85
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 157,
+      "type": "PreviewImage",
+      "title": "选中的原始LOGO细节2｜未生成、未裁剪",
+      "pos": [
+        2490,
+        4770
+      ],
+      "size": [
+        430,
+        460
+      ],
+      "flags": {},
+      "order": 56,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 86
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 158,
+      "type": "GoumeiAnalysisSheet",
+      "title": "最终5图编号预览｜分析用，Wan仍是5张独立图",
+      "pos": [
+        2010,
+        7350
+      ],
+      "size": [
+        430,
+        280
+      ],
+      "flags": {},
+      "order": 57,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images.image0",
+          "type": "IMAGE",
+          "link": 90
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sheet",
+          "type": "IMAGE",
+          "links": [
+            91
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GoumeiAnalysisSheet"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 159,
+      "type": "PreviewAny",
+      "title": "静音验证｜has_audio 必须为 false",
+      "pos": [
+        510,
+        8470
+      ],
+      "size": [
+        430,
+        500
+      ],
+      "flags": {},
+      "order": 58,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 93
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 160,
       "type": "Note",
       "title": "构美流程｜先读这里",
       "pos": [
@@ -2322,7 +2960,7 @@
       "outputs": [],
       "properties": {},
       "widgets_values": [
-        "基于 20261116 原工作流规整。\n① 使用 01 素材识别与台词确认；核对角色、单品、logo。② 使用 02 生成三图：Wan2.7 Pro 正面→背面，Qwen3.0 Pro 人脸（只用原人物）。③ 用 03 加载确认的三图，粘贴台词 JSON、连接各角色音色，开启 confirmed 后生成视频。\n主流程保留所有阶段；首次使用建议分阶段，避免重复生图。每段 2–15 秒；Video Slice 设置原片起点，台词时间从该段 0 秒开始；长片逐段后用 04 拼接。\n原人物/服饰/音色及视频请重新选择本地素材。原始 logo 细节接参考编排 extras，extra_labels 逐张填写，合计最多 10 图。图像节点的 API Key/base_url 留空使用本地配置。\n只有 B 画外音发言时，台词只写 B，路由自动仅传 B 的音频1。模型不会自行确认 ASR 角色。"
+        "本次只更新此主工作流，其他分阶段模板与双人模板不变。\n输入：同一模特3张照片、服饰原图5张。Wan2.7正面用3＋5；背面用正面＋5；Qwen3.0人脸只用3张原人物。\nQwen3.8分析五张衣服，选择两张清晰且匹配目标单品的原始LOGO/文字特写。只有不足两张时会停止；可人工填写 manual_indices=[2,5]，请先目视确认。编号预览只送视觉分析，不作为Wan图片。\n最终Wan严格接5张独立图：正面、背面、人脸、原始细节1、原始细节2。\nVideo Preprocess Remove Audio 直接连接Wan的reference_video_1，验证无音轨后才输出。原片音轨仍保留用于ASR/角色分析；参考音色仍单独传入。\n先核对选择预览和台词，再开启confirmed。主图的其他付费分析/生图分支可能先执行，请按需要选择输出节点运行。"
       ]
     }
   ],
@@ -2385,14 +3023,6 @@
     ],
     [
       8,
-      101,
-      0,
-      111,
-      0,
-      "IMAGE"
-    ],
-    [
-      9,
       111,
       0,
       112,
@@ -2400,7 +3030,7 @@
       "STRING"
     ],
     [
-      10,
+      9,
       105,
       0,
       113,
@@ -2408,7 +3038,7 @@
       "STRING"
     ],
     [
-      11,
+      10,
       109,
       0,
       113,
@@ -2416,7 +3046,7 @@
       "STRING"
     ],
     [
-      12,
+      11,
       113,
       0,
       114,
@@ -2424,7 +3054,7 @@
       "STRING"
     ],
     [
-      13,
+      12,
       107,
       0,
       114,
@@ -2432,7 +3062,7 @@
       "STRING"
     ],
     [
-      14,
+      13,
       114,
       0,
       115,
@@ -2440,7 +3070,7 @@
       "STRING"
     ],
     [
-      15,
+      14,
       115,
       0,
       116,
@@ -2448,7 +3078,7 @@
       "STRING"
     ],
     [
-      16,
+      15,
       117,
       0,
       118,
@@ -2456,7 +3086,7 @@
       "STRING"
     ],
     [
-      17,
+      16,
       106,
       0,
       118,
@@ -2464,23 +3094,7 @@
       "STRING"
     ],
     [
-      18,
-      100,
-      0,
-      119,
-      0,
-      "IMAGE"
-    ],
-    [
-      19,
-      101,
-      0,
-      119,
-      1,
-      "IMAGE"
-    ],
-    [
-      20,
+      17,
       118,
       0,
       119,
@@ -2488,7 +3102,7 @@
       "STRING"
     ],
     [
-      21,
+      18,
       119,
       0,
       120,
@@ -2496,23 +3110,7 @@
       "IMAGE"
     ],
     [
-      22,
-      101,
-      0,
-      120,
-      1,
-      "IMAGE"
-    ],
-    [
-      23,
-      100,
-      0,
-      121,
-      0,
-      "IMAGE"
-    ],
-    [
-      24,
+      19,
       119,
       0,
       122,
@@ -2520,7 +3118,7 @@
       "IMAGE"
     ],
     [
-      25,
+      20,
       120,
       0,
       123,
@@ -2528,7 +3126,7 @@
       "IMAGE"
     ],
     [
-      26,
+      21,
       121,
       0,
       124,
@@ -2536,7 +3134,7 @@
       "IMAGE"
     ],
     [
-      27,
+      22,
       104,
       0,
       125,
@@ -2544,7 +3142,7 @@
       "VIDEO"
     ],
     [
-      28,
+      23,
       104,
       0,
       126,
@@ -2552,7 +3150,7 @@
       "VIDEO"
     ],
     [
-      29,
+      24,
       125,
       0,
       126,
@@ -2560,7 +3158,7 @@
       "STRING"
     ],
     [
-      30,
+      25,
       126,
       0,
       127,
@@ -2568,7 +3166,7 @@
       "VIDEO"
     ],
     [
-      31,
+      26,
       127,
       0,
       128,
@@ -2576,7 +3174,7 @@
       "VIDEO"
     ],
     [
-      32,
+      27,
       128,
       0,
       129,
@@ -2584,7 +3182,7 @@
       "VIDEO"
     ],
     [
-      33,
+      28,
       125,
       1,
       130,
@@ -2592,7 +3190,7 @@
       "STRING"
     ],
     [
-      34,
+      29,
       127,
       3,
       131,
@@ -2600,7 +3198,7 @@
       "STRING"
     ],
     [
-      35,
+      30,
       119,
       0,
       132,
@@ -2608,7 +3206,7 @@
       "IMAGE"
     ],
     [
-      36,
+      31,
       120,
       0,
       132,
@@ -2616,7 +3214,7 @@
       "IMAGE"
     ],
     [
-      37,
+      32,
       121,
       0,
       132,
@@ -2624,7 +3222,7 @@
       "IMAGE"
     ],
     [
-      38,
+      33,
       104,
       0,
       133,
@@ -2632,15 +3230,7 @@
       "VIDEO"
     ],
     [
-      39,
-      132,
-      0,
-      133,
-      0,
-      "IMAGE"
-    ],
-    [
-      40,
+      34,
       132,
       1,
       133,
@@ -2648,7 +3238,7 @@
       "STRING"
     ],
     [
-      41,
+      35,
       133,
       0,
       134,
@@ -2656,7 +3246,7 @@
       "STRING"
     ],
     [
-      42,
+      36,
       132,
       1,
       135,
@@ -2664,7 +3254,7 @@
       "STRING"
     ],
     [
-      43,
+      37,
       136,
       0,
       137,
@@ -2672,7 +3262,7 @@
       "AUDIO"
     ],
     [
-      44,
+      38,
       138,
       0,
       139,
@@ -2680,7 +3270,7 @@
       "AUDIO"
     ],
     [
-      45,
+      39,
       104,
       1,
       140,
@@ -2688,7 +3278,7 @@
       "STRING"
     ],
     [
-      46,
+      40,
       137,
       0,
       140,
@@ -2696,7 +3286,7 @@
       "AUDIO"
     ],
     [
-      47,
+      41,
       139,
       0,
       140,
@@ -2704,7 +3294,7 @@
       "AUDIO"
     ],
     [
-      48,
+      42,
       132,
       1,
       141,
@@ -2712,7 +3302,7 @@
       "STRING"
     ],
     [
-      49,
+      43,
       133,
       0,
       141,
@@ -2720,7 +3310,7 @@
       "STRING"
     ],
     [
-      50,
+      44,
       140,
       0,
       141,
@@ -2728,7 +3318,7 @@
       "STRING"
     ],
     [
-      51,
+      45,
       140,
       4,
       141,
@@ -2736,7 +3326,7 @@
       "STRING"
     ],
     [
-      52,
+      46,
       127,
       2,
       141,
@@ -2744,7 +3334,7 @@
       "STRING"
     ],
     [
-      53,
+      47,
       140,
       4,
       142,
@@ -2752,7 +3342,7 @@
       "STRING"
     ],
     [
-      54,
+      48,
       141,
       0,
       143,
@@ -2760,7 +3350,7 @@
       "STRING"
     ],
     [
-      55,
+      49,
       132,
       0,
       144,
@@ -2768,15 +3358,7 @@
       "IMAGE"
     ],
     [
-      56,
-      129,
-      0,
-      144,
-      1,
-      "VIDEO"
-    ],
-    [
-      57,
+      50,
       140,
       2,
       144,
@@ -2784,7 +3366,7 @@
       "AUDIO"
     ],
     [
-      58,
+      51,
       140,
       3,
       144,
@@ -2792,7 +3374,7 @@
       "AUDIO"
     ],
     [
-      59,
+      52,
       141,
       0,
       144,
@@ -2800,7 +3382,7 @@
       "STRING"
     ],
     [
-      60,
+      53,
       140,
       1,
       144,
@@ -2808,10 +3390,322 @@
       "*"
     ],
     [
-      61,
+      54,
       144,
       0,
       145,
+      0,
+      "STRING"
+    ],
+    [
+      55,
+      100,
+      0,
+      119,
+      0,
+      "IMAGE"
+    ],
+    [
+      56,
+      147,
+      0,
+      119,
+      1,
+      "IMAGE"
+    ],
+    [
+      57,
+      148,
+      0,
+      119,
+      2,
+      "IMAGE"
+    ],
+    [
+      58,
+      101,
+      0,
+      119,
+      4,
+      "IMAGE"
+    ],
+    [
+      59,
+      149,
+      0,
+      119,
+      5,
+      "IMAGE"
+    ],
+    [
+      60,
+      150,
+      0,
+      119,
+      6,
+      "IMAGE"
+    ],
+    [
+      61,
+      151,
+      0,
+      119,
+      7,
+      "IMAGE"
+    ],
+    [
+      62,
+      152,
+      0,
+      119,
+      8,
+      "IMAGE"
+    ],
+    [
+      63,
+      101,
+      0,
+      120,
+      1,
+      "IMAGE"
+    ],
+    [
+      64,
+      149,
+      0,
+      120,
+      2,
+      "IMAGE"
+    ],
+    [
+      65,
+      150,
+      0,
+      120,
+      3,
+      "IMAGE"
+    ],
+    [
+      66,
+      151,
+      0,
+      120,
+      4,
+      "IMAGE"
+    ],
+    [
+      67,
+      152,
+      0,
+      120,
+      5,
+      "IMAGE"
+    ],
+    [
+      68,
+      100,
+      0,
+      121,
+      0,
+      "IMAGE"
+    ],
+    [
+      69,
+      147,
+      0,
+      121,
+      1,
+      "IMAGE"
+    ],
+    [
+      70,
+      148,
+      0,
+      121,
+      2,
+      "IMAGE"
+    ],
+    [
+      71,
+      101,
+      0,
+      153,
+      0,
+      "IMAGE"
+    ],
+    [
+      72,
+      149,
+      0,
+      153,
+      1,
+      "IMAGE"
+    ],
+    [
+      73,
+      150,
+      0,
+      153,
+      2,
+      "IMAGE"
+    ],
+    [
+      74,
+      151,
+      0,
+      153,
+      3,
+      "IMAGE"
+    ],
+    [
+      75,
+      152,
+      0,
+      153,
+      4,
+      "IMAGE"
+    ],
+    [
+      76,
+      153,
+      0,
+      111,
+      0,
+      "IMAGE"
+    ],
+    [
+      77,
+      106,
+      0,
+      111,
+      2,
+      "STRING"
+    ],
+    [
+      78,
+      101,
+      0,
+      154,
+      1,
+      "IMAGE"
+    ],
+    [
+      79,
+      149,
+      0,
+      154,
+      2,
+      "IMAGE"
+    ],
+    [
+      80,
+      150,
+      0,
+      154,
+      3,
+      "IMAGE"
+    ],
+    [
+      81,
+      151,
+      0,
+      154,
+      4,
+      "IMAGE"
+    ],
+    [
+      82,
+      152,
+      0,
+      154,
+      5,
+      "IMAGE"
+    ],
+    [
+      83,
+      111,
+      0,
+      154,
+      0,
+      "STRING"
+    ],
+    [
+      84,
+      154,
+      3,
+      155,
+      0,
+      "STRING"
+    ],
+    [
+      85,
+      154,
+      0,
+      156,
+      0,
+      "IMAGE"
+    ],
+    [
+      86,
+      154,
+      1,
+      157,
+      0,
+      "IMAGE"
+    ],
+    [
+      87,
+      154,
+      0,
+      132,
+      6,
+      "IMAGE"
+    ],
+    [
+      88,
+      154,
+      1,
+      132,
+      7,
+      "IMAGE"
+    ],
+    [
+      89,
+      154,
+      2,
+      132,
+      8,
+      "STRING"
+    ],
+    [
+      90,
+      132,
+      0,
+      158,
+      0,
+      "IMAGE"
+    ],
+    [
+      91,
+      158,
+      0,
+      133,
+      0,
+      "IMAGE"
+    ],
+    [
+      92,
+      128,
+      0,
+      144,
+      1,
+      "VIDEO"
+    ],
+    [
+      93,
+      128,
+      1,
+      159,
       0,
       "STRING"
     ]
@@ -2824,7 +3718,7 @@
         0,
         220,
         1470,
-        3500
+        5740
       ],
       "color": "#375a7f",
       "font_size": 24,
@@ -2837,7 +3731,7 @@
         1500,
         220,
         1470,
-        4620
+        5740
       ],
       "color": "#85623b",
       "font_size": 24,
@@ -2861,7 +3755,7 @@
       "title": "04｜参考视频预处理（保留原流程）",
       "bounding": [
         0,
-        5220,
+        6160,
         1470,
         3500
       ],
@@ -2874,7 +3768,7 @@
       "title": "05｜参考图编排与原片视觉分析",
       "bounding": [
         1500,
-        5220,
+        6160,
         1470,
         2380
       ],
@@ -2887,7 +3781,7 @@
       "title": "06｜确认台词、音色与 Wan3 视频",
       "bounding": [
         3000,
-        5220,
+        6160,
         1470,
         4620
       ],

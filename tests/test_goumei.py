@@ -9,10 +9,53 @@ import av
 import torch
 
 from test_nodes import plugin
-from bailian_image_plugin.goumei import GoumeiReferencePack, GoumeiDialogue, GoumeiVideoPrompt, GoumeiMuteVideo, VideoFromFile, dialogue_timeline
+from bailian_image_plugin.goumei import GoumeiReferencePack, GoumeiDialogue, GoumeiVideoPrompt, GoumeiMuteVideo, GoumeiAnalysisSheet, GoumeiSelectLogoDetails, VideoFromFile, dialogue_timeline
 
 
 class GoumeiTests(unittest.TestCase):
+    def test_select_logo_returns_original_tensors_in_rank_order(self):
+        originals = {f'image{i}': torch.full((1, 8+i, 8, 3), i/5) for i in range(5)}
+        report = {"images": [{"index": i, "logo_text_closeup": i in (2, 5), "readable": True,
+                              "matches_selected_item": True, "confidence": 0.99 if i == 5 else 0.9,
+                              "description": f"detail {i}"} for i in range(1,6)]}
+        first, second, labels, selection = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals).result
+        self.assertIs(first, originals['image4'])
+        self.assertIs(second, originals['image1'])
+        self.assertEqual(json.loads(selection)['selected_original_indices'], [5, 2])
+        self.assertEqual(len(json.loads(labels)), 2)
+
+    def test_logo_insufficient_never_duplicates_or_fills(self):
+        originals = {f'image{i}': torch.zeros((1, 4, 4, 3)) for i in range(5)}
+        report = {"images": [{"index": i, "logo_text_closeup": i == 2, "readable": True,
+                              "matches_selected_item": True, "confidence": 0.99} for i in range(1,6)]}
+        with self.assertRaisesRegex(ValueError, "只识别到 1 张"):
+            GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals)
+        report['images'][4].update(logo_text_closeup=True, readable=False)
+        with self.assertRaises(ValueError):
+            GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals)
+
+    def test_logo_manual_indices_are_distinct_and_in_range(self):
+        originals = {f'image{i}': torch.zeros((1, 4, 4, 3)) for i in range(5)}
+        output = GoumeiSelectLogoDetails.execute('', '[2,5]', originals).result
+        self.assertIs(output[0], originals['image1'])
+        for value in ('[2,2]', '[0,5]', '[2,6]', '[true,5]', '[2]'):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                GoumeiSelectLogoDetails.execute('', value, originals)
+
+    def test_analysis_sheet_is_single_numbered_image(self):
+        frames = torch.zeros((5, 10, 5, 3))
+        result = GoumeiAnalysisSheet.execute({'image0': frames}).result[0]
+        self.assertEqual(result.shape, (1, 2160, 3072, 3))
+
+    def test_exact_five_reference_pack(self):
+        image = torch.zeros((1, 4, 4, 3))
+        with self.assertRaisesRegex(ValueError, "必须输入 5"):
+            GoumeiReferencePack.execute('单人＋画外音', image, image, image, expected_count=5)
+        packed = GoumeiReferencePack.execute('单人＋画外音', image, image, image, '["原图2 LOGO","原图5文字"]',
+                    extras={'image0': image, 'image1': image}, expected_count=5).result
+        self.assertEqual(packed[0].shape[0], 5)
+        self.assertIn('原图2', json.loads(packed[1])['images'][3]['purpose'])
+
     def test_timing_merge_and_continuity(self):
         result = dialogue_timeline('[{"role":"B","text":"你好"},{"role":"A","text":"欢迎"},{"role":"A","text":"请看这件衣服"}]', 14, "单人＋画外音", "按字数连续分配")
         self.assertEqual(len(result), 2)

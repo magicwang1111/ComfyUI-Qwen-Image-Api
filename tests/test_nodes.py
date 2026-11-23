@@ -32,7 +32,7 @@ class NodeTests(unittest.TestCase):
     def test_extension_and_real_comfy_schemas(self):
         extension = asyncio.run(plugin.comfy_entrypoint())
         classes = asyncio.run(extension.get_node_list())
-        self.assertEqual(len(classes), 6)
+        self.assertEqual(len(classes), 8)
         for cls in classes:
             schema = cls.GET_SCHEMA()
             schema.validate()

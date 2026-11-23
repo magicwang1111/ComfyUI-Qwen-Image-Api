@@ -10,7 +10,7 @@ from pathlib import Path
 import folder_paths
 import numpy as np
 import torch
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from comfy_api.latest import io
 from comfy_api.latest._input_impl import VideoFromFile
 
@@ -25,6 +25,79 @@ def json_value(text):
     return json.loads(text)
 
 
+class GoumeiAnalysisSheet(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(node_id="GoumeiAnalysisSheet", display_name="构美｜带编号分析预览", category="image/百炼 API/构美",
+            description="仅给视觉分析或预览使用。原始独立图片仍直接传给生成/选择节点。",
+            inputs=[io.Autogrow.Input("images", template=io.Autogrow.TemplatePrefix(
+                io.Image.Input("image"), prefix="image", min=1, max=10))], outputs=[io.Image.Output("sheet")])
+
+    @classmethod
+    def execute(cls, images):
+        frames = [frame for name in sorted(images, key=lambda name: int(name.removeprefix("image"))) for frame in images[name]]
+        if not 1 <= len(frames) <= 10:
+            raise ValueError("分析预览须包含 1–10 张图。")
+        columns = min(3, len(frames))
+        canvas = Image.new("RGB", (columns * 1024, math.ceil(len(frames) / columns) * 1080), "white")
+        draw = ImageDraw.Draw(canvas)
+        font = ImageFont.load_default(size=36)
+        for index, frame in enumerate(frames):
+            image = Image.fromarray((frame.detach().cpu().numpy() * 255).clip(0, 255).astype(np.uint8)).convert("RGB")
+            image = ImageOps.contain(image, (1024, 1024), Image.Resampling.LANCZOS)
+            x, y = (index % columns) * 1024, (index // columns) * 1080
+            canvas.paste(image, (x + (1024 - image.width) // 2, y + 56 + (1024 - image.height) // 2))
+            draw.text((x + 20, y + 8), f"IMAGE {index + 1}", font=font, fill="black")
+        return io.NodeOutput(torch.from_numpy(np.asarray(canvas, dtype=np.float32) / 255.0).unsqueeze(0))
+
+
+class GoumeiSelectLogoDetails(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(node_id="GoumeiSelectLogoDetails", display_name="构美｜从五张原图选择两张LOGO细节", category="image/百炼 API/构美",
+            inputs=[io.String.Input("analysis_json", force_input=True),
+                    io.String.Input("manual_indices", default="", tooltip="可选：目视确认后填写两个不同的原图编号，如 [2,5]。留空按分析选择。"),
+                    io.Autogrow.Input("clothes", template=io.Autogrow.TemplatePrefix(io.Image.Input("image"), prefix="image", min=5, max=5))],
+            outputs=[io.Image.Output("detail_1"), io.Image.Output("detail_2"), io.String.Output("labels"), io.String.Output("selection_report")])
+
+    @classmethod
+    def execute(cls, analysis_json, manual_indices="", clothes=None):
+        originals = [clothes[name] for name in sorted(clothes or {}, key=lambda name: int(name.removeprefix("image")))]
+        if len(originals) != 5 or any(len(image) != 1 for image in originals):
+            raise ValueError("须连接五张独立的原始服饰图，每个插口仅含一张。")
+        descriptions = {}
+        manual = bool(manual_indices.strip())
+        if manual:
+            chosen = json_value(manual_indices)
+        else:
+            analysis = json_value(analysis_json)
+            items = analysis.get("images") if isinstance(analysis, dict) else None
+            if not isinstance(items, list) or len(items) != 5:
+                raise ValueError("分析结果必须包含 images 数组，逐张描述原始图片1–5。")
+            indexed = {}
+            for item in items:
+                if not isinstance(item, dict) or type(item.get("index")) is not int or not 1 <= item["index"] <= 5 or item["index"] in indexed:
+                    raise ValueError("服饰图分析编号必须恰好为1–5，不允许重复或越界。")
+                score = item.get("confidence")
+                if type(score) not in (int, float) or not math.isfinite(score) or not 0 <= score <= 1:
+                    raise ValueError("每张图的 confidence 必须为0–1的数字。")
+                indexed[item["index"]] = item
+            candidates = [item for item in indexed.values() if item.get("logo_text_closeup") is True
+                          and item.get("readable") is True and item.get("matches_selected_item") is True and item["confidence"] >= 0.8]
+            if len(candidates) < 2:
+                raise ValueError(f"只识别到 {len(candidates)} 张清晰且匹配目标单品的LOGO/文字特写，不能满足两张原始细节图。请更换素材或目视确认后填写 manual_indices；不会重复图片或生成LOGO凑数。")
+            candidates.sort(key=lambda item: (-item["confidence"], item["index"]))
+            chosen = [item["index"] for item in candidates[:2]]
+            descriptions = {item["index"]: str(item.get("description", "LOGO/文字细节")) for item in candidates[:2]}
+        if not isinstance(chosen, list) or len(chosen) != 2 or any(type(index) is not int or not 1 <= index <= 5 for index in chosen) or chosen[0] == chosen[1]:
+            raise ValueError("必须选择两个不同的原始服饰图编号，范围1–5，例如 [2,5]。")
+        labels = [f"A 原始服饰图{index}：{descriptions.get(index, '人工确认的LOGO/文字细节')}" for index in chosen]
+        report = {"selected_original_indices": chosen, "selection": "manual" if manual else "model_analysis",
+                  "labels": labels, "source": "original_clothing_images", "generated_or_cropped": False}
+        return io.NodeOutput(originals[chosen[0] - 1], originals[chosen[1] - 1], json.dumps(labels, ensure_ascii=False),
+                             json.dumps(report, ensure_ascii=False, indent=2))
+
+
 class GoumeiReferencePack(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -35,11 +108,13 @@ class GoumeiReferencePack(io.ComfyNode):
                         tooltip='与额外图片逐张对应，如 ["A 外套胸前 logo 原始特写","背景参考"]。'),
                     io.Image.Input("b_front", optional=True), io.Image.Input("b_back", optional=True), io.Image.Input("b_face", optional=True),
                     io.Autogrow.Input("extras", template=io.Autogrow.TemplatePrefix(io.Image.Input("image", optional=True),
-                        prefix="image", min=0, max=7), optional=True)],
+                        prefix="image", min=0, max=7), optional=True),
+                    io.Int.Input("expected_count", default=0, min=0, max=10, optional=True,
+                                 tooltip="0 使用原规则；5 强制三张AI图＋两张原始细节图。")],
             outputs=[io.Image.Output("images"), io.String.Output("manifest")])
 
     @classmethod
-    def execute(cls, scenario, a_front, a_back, a_face, extra_labels="[]", b_front=None, b_back=None, b_face=None, extras=None):
+    def execute(cls, scenario, a_front, a_back, a_face, extra_labels="[]", b_front=None, b_back=None, b_face=None, extras=None, expected_count=0):
         tensors, labels = [], []
         roles = [("A", (a_front, a_back, a_face))]
         if scenario == "双人口播":
@@ -61,6 +136,8 @@ class GoumeiReferencePack(io.ComfyNode):
         labels.extend(descriptions)
         if len(tensors) > 10:
             raise ValueError(f"视频参考图最多 10 张，当前 {len(tensors)} 张；请调整素材，不会自动丢弃。")
+        if expected_count and len(tensors) != expected_count:
+            raise ValueError(f"本流程必须输入 {expected_count} 张参考图，实际 {len(tensors)} 张。")
         frames = []
         for tensor in tensors:
             image = Image.fromarray((tensor.detach().cpu().numpy() * 255).clip(0, 255).astype(np.uint8)).convert("RGB")

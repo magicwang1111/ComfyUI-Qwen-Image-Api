@@ -7,6 +7,24 @@ WORKFLOWS = Path(__file__).resolve().parents[1] / 'workflows/goumei'
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_master_uses_three_models_five_clothes_and_silent_video(self):
+        graph = json.loads((WORKFLOWS/'构美_全流程_规整版.json').read_text(encoding='utf-8'))
+        nodes = {node['id']: node for node in graph['nodes']}
+        links = {link[0]: link for link in graph['links']}
+        by_type = {node['type']: node for node in graph['nodes']}
+        def sources(node, prefix):
+            return [nodes[links[i['link']][1]] for i in node['inputs'] if i['name'].startswith(prefix) and i['link']]
+        front = next(node for node in nodes.values() if node['title'].startswith('A 正面'))
+        back = next(node for node in nodes.values() if node['title'].startswith('A 背面'))
+        self.assertEqual(len(sources(front, 'reference_images.')), 8)
+        self.assertEqual(len(sources(back, 'reference_images.')), 6)
+        self.assertEqual(len(sources(by_type['QwenImageAPI'], 'reference_images.')), 3)
+        self.assertEqual(len(sources(by_type['GoumeiSelectLogoDetails'], 'clothes.')), 5)
+        self.assertEqual(by_type['GoumeiReferencePack']['widgets_values_named']['expected_count'], 5)
+        self.assertEqual(sources(by_type['Wan 3.0 API Reference To Video'], 'reference_video_1')[0]['type'], 'Video Preprocess Remove Audio')
+        visual = next(node for node in nodes.values() if node['type']=='ComfyUI-LLM Qwen Bailian' and '原片 +' in node['title'])
+        self.assertEqual(sources(visual, 'image')[0]['type'], 'GoumeiAnalysisSheet')
+
     def test_links_have_matching_endpoints_and_no_cycles(self):
         for path in WORKFLOWS.glob('*.json'):
             with self.subTest(file=path.name):
