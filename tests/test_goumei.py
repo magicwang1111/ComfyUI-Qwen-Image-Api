@@ -41,7 +41,7 @@ class GoumeiTests(unittest.TestCase):
         report = {"images": [{"index": i, "logo_text_closeup": i in (2, 5), "readable": True,
                               "matches_selected_item": True, "confidence": 0.99 if i == 5 else 0.9,
                               "description": f"detail {i}"} for i in range(1,6)]}
-        first, second, labels, selection = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals).result
+        first, second, labels, selection = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals).result[:4]
         self.assertIs(first, originals['image4'])
         self.assertIs(second, originals['image1'])
         self.assertEqual(json.loads(selection)['selected_original_indices'], [5, 2])
@@ -69,6 +69,50 @@ class GoumeiTests(unittest.TestCase):
         frames = torch.zeros((5, 10, 5, 3))
         result = GoumeiAnalysisSheet.execute({'image0': frames}).result[0]
         self.assertEqual(result.shape, (1, 2160, 3072, 3))
+
+    def test_optional_details_keep_logo_text_or_pattern_without_old_gates(self):
+        originals = {f'image{i}': torch.full((1, 4+i, 4, 3), i/5) for i in range(5)}
+        report = {"images": [{"index": i, "has_logo": i == 1, "has_text": i == 3, "has_pattern": i == 5,
+                              "logo_text_closeup": False, "readable": False, "matches_selected_item": False,
+                              "confidence": 0.1, "description": f"detail {i}"} for i in range(1, 6)]}
+        result = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals, selection_mode="保留LOGO/文字/花纹").result
+        self.assertEqual(json.loads(result[3])['selected_original_indices'], [1, 3, 5])
+        for image, index in zip(result[4]['images'], [0, 2, 4]):
+            self.assertIs(image, originals[f'image{index}'])
+
+    def test_optional_details_zero_to_five_reach_reference_pack_and_prompt(self):
+        originals = {f'image{i}': torch.full((1, 4+i, 4, 3), i/5) for i in range(5)}
+        image = originals['image0']
+        for count in range(6):
+            with self.subTest(count=count):
+                report = {"images": [{"index": i, "has_logo": False, "has_text": False, "has_pattern": i <= count,
+                                      "description": f"pattern {i}"} for i in range(1, 6)]}
+                selected = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals, selection_mode="保留LOGO/文字/花纹").result
+                self.assertEqual(len(selected[4]['images']), count)
+                if count == 0:
+                    self.assertIsNone(selected[0])
+                    self.assertIsNone(selected[1])
+                    self.assertEqual(json.loads(selected[2]), [])
+                packed, manifest = GoumeiReferencePack.execute('单人＋画外音', image, image, image, selected_details=selected[4]).result
+                self.assertEqual(packed.shape[0], 3 + count)
+                entries = json.loads(manifest)['images']
+                self.assertEqual([item['number'] for item in entries], list(range(1, 4 + count)))
+                self.assertEqual([item['purpose'] for item in entries[3:]], selected[4]['labels'])
+                prompt = GoumeiVideoPrompt.execute(manifest, '', '台词', '{"scenario":"单人＋画外音"}').result[0]
+                self.assertNotIn(f"图片{4+count}：", prompt)
+                self.assertIn('没有原始细节图时仅依据正面、背面和人脸参考', prompt)
+
+    def test_optional_details_manual_empty_single_and_all(self):
+        originals = {f'image{i}': torch.zeros((1, 4, 4, 3)) for i in range(5)}
+        for chosen in ([], [3], [1, 2, 3, 4, 5]):
+            result = GoumeiSelectLogoDetails.execute('', json.dumps(chosen), originals, '保留LOGO/文字/花纹').result
+            self.assertEqual(json.loads(result[3])['selected_original_indices'], chosen)
+
+    def test_optional_details_invalid_analysis_is_not_treated_as_no_details(self):
+        originals = {f'image{i}': torch.zeros((1, 4, 4, 3)) for i in range(5)}
+        report = {"images": [{"index": i, "has_logo": False, "has_text": False, "has_pattern": "false"} for i in range(1, 6)]}
+        with self.assertRaisesRegex(ValueError, "true/false"):
+            GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals, selection_mode='保留LOGO/文字/花纹')
 
     def test_exact_five_reference_pack(self):
         image = torch.zeros((1, 4, 4, 3))

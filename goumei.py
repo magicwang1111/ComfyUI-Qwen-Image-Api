@@ -56,16 +56,19 @@ class GoumeiSelectLogoDetails(io.ComfyNode):
     def define_schema(cls):
         return io.Schema(node_id="GoumeiSelectLogoDetails", display_name="构美｜从五张原图选择两张LOGO细节", category="image/百炼 API/构美",
             inputs=[io.String.Input("analysis_json", force_input=True),
-                    io.String.Input("manual_indices", default="", tooltip="可选：目视确认后填写两个不同的原图编号，如 [2,5]。留空按分析选择。"),
-                    io.Autogrow.Input("clothes", template=io.Autogrow.TemplatePrefix(io.Image.Input("image"), prefix="image", min=5, max=5))],
-            outputs=[io.Image.Output("detail_1"), io.Image.Output("detail_2"), io.String.Output("labels"), io.String.Output("selection_report")])
+                    io.String.Input("manual_indices", default="", tooltip="留空自动选择。可手填原图编号，如 [2,5]；保留LOGO/文字/花纹模式允许0–5张，[] 表示不保留。"),
+                    io.Autogrow.Input("clothes", template=io.Autogrow.TemplatePrefix(io.Image.Input("image"), prefix="image", min=5, max=5)),
+                    io.Combo.Input("selection_mode", options=["两张LOGO特写", "保留LOGO/文字/花纹"], default="两张LOGO特写", optional=True)],
+            outputs=[io.Image.Output("detail_1"), io.Image.Output("detail_2"), io.String.Output("labels"), io.String.Output("selection_report"),
+                     io.Custom("GOUMEI_DETAILS").Output("selected_details")])
 
     @classmethod
-    def execute(cls, analysis_json, manual_indices="", clothes=None):
+    def execute(cls, analysis_json, manual_indices="", clothes=None, selection_mode="两张LOGO特写"):
         originals = [clothes[name] for name in sorted(clothes or {}, key=lambda name: int(name.removeprefix("image")))]
         if len(originals) != 5 or any(len(image) != 1 for image in originals):
             raise ValueError("须连接五张独立的原始服饰图，每个插口仅含一张。")
         descriptions = {}
+        flexible = selection_mode == "保留LOGO/文字/花纹"
         manual = bool(manual_indices.strip())
         if manual:
             chosen = json_value(manual_indices)
@@ -78,24 +81,36 @@ class GoumeiSelectLogoDetails(io.ComfyNode):
             for item in items:
                 if not isinstance(item, dict) or type(item.get("index")) is not int or not 1 <= item["index"] <= 5 or item["index"] in indexed:
                     raise ValueError("服饰图分析编号必须恰好为1–5，不允许重复或越界。")
-                score = item.get("confidence")
-                if type(score) not in (int, float) or not math.isfinite(score) or not 0 <= score <= 1:
-                    raise ValueError("每张图的 confidence 必须为0–1的数字。")
+                if flexible:
+                    if any(type(item.get(field)) is not bool for field in ("has_logo", "has_text", "has_pattern")):
+                        raise ValueError("每张图须用 true/false 标明 has_logo、has_text、has_pattern。")
+                else:
+                    score = item.get("confidence")
+                    if type(score) not in (int, float) or not math.isfinite(score) or not 0 <= score <= 1:
+                        raise ValueError("每张图的 confidence 必须为0–1的数字。")
                 indexed[item["index"]] = item
-            candidates = [item for item in indexed.values() if item.get("logo_text_closeup") is True
-                          and item.get("readable") is True and item.get("matches_selected_item") is True and item["confidence"] >= 0.8]
-            if len(candidates) < 2:
-                raise ValueError(f"只识别到 {len(candidates)} 张清晰且匹配目标单品的LOGO/文字特写，不能满足两张原始细节图。请更换素材或目视确认后填写 manual_indices；不会重复图片或生成LOGO凑数。")
-            candidates.sort(key=lambda item: (-item["confidence"], item["index"]))
-            chosen = [item["index"] for item in candidates[:2]]
-            descriptions = {item["index"]: str(item.get("description", "LOGO/文字细节")) for item in candidates[:2]}
-        if not isinstance(chosen, list) or len(chosen) != 2 or any(type(index) is not int or not 1 <= index <= 5 for index in chosen) or chosen[0] == chosen[1]:
-            raise ValueError("必须选择两个不同的原始服饰图编号，范围1–5，例如 [2,5]。")
+            if flexible:
+                candidates = [indexed[index] for index in sorted(indexed)
+                              if any(indexed[index][field] for field in ("has_logo", "has_text", "has_pattern"))]
+            else:
+                candidates = [item for item in indexed.values() if item.get("logo_text_closeup") is True
+                              and item.get("readable") is True and item.get("matches_selected_item") is True and item["confidence"] >= 0.8]
+                if len(candidates) < 2:
+                    raise ValueError(f"只识别到 {len(candidates)} 张清晰且匹配目标单品的LOGO/文字特写，不能满足两张原始细节图。请更换素材或目视确认后填写 manual_indices；不会重复图片或生成LOGO凑数。")
+                candidates.sort(key=lambda item: (-item["confidence"], item["index"]))
+                candidates = candidates[:2]
+            chosen = [item["index"] for item in candidates]
+            descriptions = {item["index"]: str(item.get("description", "LOGO/文字/花纹细节")) for item in candidates}
+        if (not isinstance(chosen, list) or (not flexible and len(chosen) != 2)
+                or any(type(index) is not int or not 1 <= index <= 5 for index in chosen) or len(set(chosen)) != len(chosen)):
+            raise ValueError("原图编号须为1–5且不能重复；两张LOGO特写模式须选两个编号。")
         labels = [f"A 原始服饰图{index}：{descriptions.get(index, '人工确认的LOGO/文字细节')}" for index in chosen]
         report = {"selected_original_indices": chosen, "selection": "manual" if manual else "model_analysis",
                   "labels": labels, "source": "original_clothing_images", "generated_or_cropped": False}
-        return io.NodeOutput(originals[chosen[0] - 1], originals[chosen[1] - 1], json.dumps(labels, ensure_ascii=False),
-                             json.dumps(report, ensure_ascii=False, indent=2))
+        selected = [originals[index - 1] for index in chosen]
+        return io.NodeOutput(selected[0] if selected else None, selected[1] if len(selected) > 1 else None,
+                             json.dumps(labels, ensure_ascii=False), json.dumps(report, ensure_ascii=False, indent=2),
+                             {"images": selected, "labels": labels})
 
 
 class GoumeiReferencePack(io.ComfyNode):
@@ -110,11 +125,12 @@ class GoumeiReferencePack(io.ComfyNode):
                     io.Autogrow.Input("extras", template=io.Autogrow.TemplatePrefix(io.Image.Input("image", optional=True),
                         prefix="image", min=0, max=7), optional=True),
                     io.Int.Input("expected_count", default=0, min=0, max=10, optional=True,
-                                 tooltip="0 使用原规则；5 强制三张AI图＋两张原始细节图。")],
+                                 tooltip="0 按实际参考图数量；5 强制三张AI图＋两张原始细节图。"),
+                    io.Custom("GOUMEI_DETAILS").Input("selected_details", optional=True)],
             outputs=[io.Image.Output("images"), io.String.Output("manifest")])
 
     @classmethod
-    def execute(cls, scenario, a_front, a_back, a_face, extra_labels="[]", b_front=None, b_back=None, b_face=None, extras=None, expected_count=0):
+    def execute(cls, scenario, a_front, a_back, a_face, extra_labels="[]", b_front=None, b_back=None, b_face=None, extras=None, expected_count=0, selected_details=None):
         tensors, labels = [], []
         roles = [("A", (a_front, a_back, a_face))]
         if scenario == "双人口播":
@@ -134,6 +150,9 @@ class GoumeiReferencePack(io.ComfyNode):
             raise ValueError("extra_labels 必须为与额外图片逐张对应的非空文字 JSON 数组。")
         tensors.extend(extra_tensors)
         labels.extend(descriptions)
+        if selected_details is not None:
+            tensors.extend(image[0] for image in selected_details["images"])
+            labels.extend(selected_details["labels"])
         if len(tensors) > 10:
             raise ValueError(f"视频参考图最多 10 张，当前 {len(tensors)} 张；请调整素材，不会自动丢弃。")
         if expected_count and len(tensors) != expected_count:
@@ -297,7 +316,7 @@ class GoumeiVideoPrompt(io.ComfyNode):
         text.extend([
             "每位出镜者的正面、背面穿搭图定义同一套身体服饰，按原片朝向选用；人脸特写单独定义人物身份及头部外观。不混合原片人物五官，不继承不一致的旧衣物或配饰。转头、转身和遮挡后保持同一身份、肤色、五官和穿搭结构。",
             "【目标服饰及接触关系（以可见事实为准）】\n" + visual_analysis,
-            "原始 logo／文字特写只补充对应单品的对应位置；生成三图中的标识若失真，以原始细节图为准。不得新增第二件物品，不把局部图案复制到其他部位。",
+            "若参考图映射包含原始 LOGO／文字／花纹细节图，只补充对应单品的对应位置；生成三图中的标识或花纹若失真，以原始细节图为准。没有原始细节图时仅依据正面、背面和人脸参考，不补造标识、文字或花纹。不得新增第二件物品，不把局部图案复制到其他部位。",
             "目标单品跨镜头、转身和遮挡后保持一致，不残留旧部件、不叠加第二件。替换覆盖领口、袖口、手腕和遮挡边缘；移除超出目标轮廓的旧物并补全皮肤、衣物或背景。按目标款式与衣长还原，内搭仅在自然露出的位置显示，不强行改变开合。",
             "【穿戴与动作】左右以人物自身为准。携带方式或位置变化时移除旧位置物品及带子、提手，不在两处保留两件。手持物与握持点保持接触并受重力影响；肩背物保持支撑关系，转身和遮挡后延续。",
             "【场景与保留商品】\n" + scene_notes,

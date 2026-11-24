@@ -7,6 +7,21 @@ WORKFLOWS = Path(__file__).resolve().parents[1] / 'workflows/goumei'
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_1124_uses_optional_details_and_dynamic_reference_count(self):
+        graph = json.loads((WORKFLOWS/'20261124qwen全流程（去字幕api）.json').read_text(encoding='utf-8'))
+        nodes = {node['id']: node for node in graph['nodes']}
+        links = {link[0]: link for link in graph['links']}
+        selector = next(node for node in nodes.values() if node['type'] == 'GoumeiSelectLogoDetails')
+        pack = next(node for node in nodes.values() if node['type'] == 'GoumeiReferencePack')
+        self.assertEqual(selector['widgets_values_named']['selection_mode'], '保留LOGO/文字/花纹')
+        self.assertEqual(pack['widgets_values_named']['expected_count'], 0)
+        details = next(item for item in pack['inputs'] if item['name'] == 'selected_details')
+        self.assertEqual(links[details['link']][1:3], [selector['id'], 4])
+        self.assertFalse(any(output['links'] for output in selector['outputs'][:2]))
+        self.assertFalse(any(item['link'] for item in pack['inputs'] if item['name'].startswith('extras.')))
+        visual = next(node for node in nodes.values() if node['type'] == 'ComfyUI-LLM Qwen Bailian' and '原片 +' in node['title'])
+        self.assertIn('只有3张时', visual['widgets_values_named']['system_prompt'])
+
     def test_master_uses_three_models_five_clothes_and_silent_video(self):
         graph = json.loads((WORKFLOWS/'构美_全流程_规整版.json').read_text(encoding='utf-8'))
         nodes = {node['id']: node for node in graph['nodes']}
