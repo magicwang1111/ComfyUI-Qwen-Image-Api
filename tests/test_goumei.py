@@ -36,35 +36,6 @@ class GoumeiTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             GoumeiScenario.execute("双人口播")
 
-    def test_select_logo_returns_original_tensors_in_rank_order(self):
-        originals = {f'image{i}': torch.full((1, 8+i, 8, 3), i/5) for i in range(5)}
-        report = {"images": [{"index": i, "logo_text_closeup": i in (2, 5), "readable": True,
-                              "matches_selected_item": True, "confidence": 0.99 if i == 5 else 0.9,
-                              "description": f"detail {i}"} for i in range(1,6)]}
-        first, second, labels, selection = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals).result[:4]
-        self.assertIs(first, originals['image4'])
-        self.assertIs(second, originals['image1'])
-        self.assertEqual(json.loads(selection)['selected_original_indices'], [5, 2])
-        self.assertEqual(len(json.loads(labels)), 2)
-
-    def test_logo_insufficient_never_duplicates_or_fills(self):
-        originals = {f'image{i}': torch.zeros((1, 4, 4, 3)) for i in range(5)}
-        report = {"images": [{"index": i, "logo_text_closeup": i == 2, "readable": True,
-                              "matches_selected_item": True, "confidence": 0.99} for i in range(1,6)]}
-        with self.assertRaisesRegex(ValueError, "只识别到 1 张"):
-            GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals)
-        report['images'][4].update(logo_text_closeup=True, readable=False)
-        with self.assertRaises(ValueError):
-            GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals)
-
-    def test_logo_manual_indices_are_distinct_and_in_range(self):
-        originals = {f'image{i}': torch.zeros((1, 4, 4, 3)) for i in range(5)}
-        output = GoumeiSelectLogoDetails.execute('', '[2,5]', originals).result
-        self.assertIs(output[0], originals['image1'])
-        for value in ('[2,2]', '[0,5]', '[2,6]', '[true,5]', '[2]'):
-            with self.subTest(value=value), self.assertRaises(ValueError):
-                GoumeiSelectLogoDetails.execute('', value, originals)
-
     def test_analysis_sheet_is_single_numbered_image(self):
         frames = torch.zeros((5, 10, 5, 3))
         result = GoumeiAnalysisSheet.execute({'image0': frames}).result[0]
@@ -75,10 +46,22 @@ class GoumeiTests(unittest.TestCase):
         report = {"images": [{"index": i, "has_logo": i == 1, "has_text": i == 3, "has_pattern": i == 5,
                               "logo_text_closeup": False, "readable": False, "matches_selected_item": False,
                               "confidence": 0.1, "description": f"detail {i}"} for i in range(1, 6)]}
-        result = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals, selection_mode="保留LOGO/文字/花纹").result
+        result = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals).result
         self.assertEqual(json.loads(result[3])['selected_original_indices'], [1, 3, 5])
         for image, index in zip(result[4]['images'], [0, 2, 4]):
             self.assertIs(image, originals[f'image{index}'])
+
+    def test_selection_is_automatic_with_no_manual_or_mode_controls(self):
+        fields = {item.id for item in GoumeiSelectLogoDetails.define_schema().inputs}
+        self.assertEqual(fields, {'analysis_json', 'clothes'})
+
+    def test_selection_preserves_original_order_even_if_analysis_is_reversed(self):
+        originals = {f'image{i}': torch.full((1, 4+i, 4, 3), i/5) for i in range(5)}
+        report = {'images': [{'index': i, 'has_logo': i in (2, 5), 'has_text': False, 'has_pattern': False} for i in range(5, 0, -1)]}
+        result = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals).result
+        self.assertEqual(json.loads(result[3])['selected_original_indices'], [2, 5])
+        self.assertIs(result[4]['images'][0], originals['image1'])
+        self.assertIs(result[4]['images'][1], originals['image4'])
 
     def test_optional_details_zero_to_five_reach_reference_pack_and_prompt(self):
         originals = {f'image{i}': torch.full((1, 4+i, 4, 3), i/5) for i in range(5)}
@@ -87,7 +70,7 @@ class GoumeiTests(unittest.TestCase):
             with self.subTest(count=count):
                 report = {"images": [{"index": i, "has_logo": False, "has_text": False, "has_pattern": i <= count,
                                       "description": f"pattern {i}"} for i in range(1, 6)]}
-                selected = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals, selection_mode="保留LOGO/文字/花纹").result
+                selected = GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals).result
                 self.assertEqual(len(selected[4]['images']), count)
                 if count == 0:
                     self.assertIsNone(selected[0])
@@ -102,17 +85,11 @@ class GoumeiTests(unittest.TestCase):
                 self.assertNotIn(f"图片{4+count}：", prompt)
                 self.assertIn('没有原始细节图时仅依据正面、背面和人脸参考', prompt)
 
-    def test_optional_details_manual_empty_single_and_all(self):
-        originals = {f'image{i}': torch.zeros((1, 4, 4, 3)) for i in range(5)}
-        for chosen in ([], [3], [1, 2, 3, 4, 5]):
-            result = GoumeiSelectLogoDetails.execute('', json.dumps(chosen), originals, '保留LOGO/文字/花纹').result
-            self.assertEqual(json.loads(result[3])['selected_original_indices'], chosen)
-
     def test_optional_details_invalid_analysis_is_not_treated_as_no_details(self):
         originals = {f'image{i}': torch.zeros((1, 4, 4, 3)) for i in range(5)}
         report = {"images": [{"index": i, "has_logo": False, "has_text": False, "has_pattern": "false"} for i in range(1, 6)]}
         with self.assertRaisesRegex(ValueError, "true/false"):
-            GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals, selection_mode='保留LOGO/文字/花纹')
+            GoumeiSelectLogoDetails.execute(json.dumps(report), clothes=originals)
 
     def test_exact_five_reference_pack(self):
         image = torch.zeros((1, 4, 4, 3))

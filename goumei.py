@@ -54,58 +54,31 @@ class GoumeiAnalysisSheet(io.ComfyNode):
 class GoumeiSelectLogoDetails(io.ComfyNode):
     @classmethod
     def define_schema(cls):
-        return io.Schema(node_id="GoumeiSelectLogoDetails", display_name="构美｜从五张原图选择两张LOGO细节", category="image/百炼 API/构美",
+        return io.Schema(node_id="GoumeiSelectLogoDetails", display_name="构美｜自动保留LOGO/文字/花纹", category="image/百炼 API/构美",
             inputs=[io.String.Input("analysis_json", force_input=True),
-                    io.String.Input("manual_indices", default="", tooltip="留空自动选择。可手填原图编号，如 [2,5]；保留LOGO/文字/花纹模式允许0–5张，[] 表示不保留。"),
-                    io.Autogrow.Input("clothes", template=io.Autogrow.TemplatePrefix(io.Image.Input("image"), prefix="image", min=5, max=5)),
-                    io.Combo.Input("selection_mode", options=["两张LOGO特写", "保留LOGO/文字/花纹"], default="两张LOGO特写", optional=True)],
+                    io.Autogrow.Input("clothes", template=io.Autogrow.TemplatePrefix(io.Image.Input("image"), prefix="image", min=5, max=5))],
             outputs=[io.Image.Output("detail_1"), io.Image.Output("detail_2"), io.String.Output("labels"), io.String.Output("selection_report"),
                      io.Custom("GOUMEI_DETAILS").Output("selected_details")])
 
     @classmethod
-    def execute(cls, analysis_json, manual_indices="", clothes=None, selection_mode="两张LOGO特写"):
+    def execute(cls, analysis_json, clothes=None):
         originals = [clothes[name] for name in sorted(clothes or {}, key=lambda name: int(name.removeprefix("image")))]
         if len(originals) != 5 or any(len(image) != 1 for image in originals):
             raise ValueError("须连接五张独立的原始服饰图，每个插口仅含一张。")
-        descriptions = {}
-        flexible = selection_mode == "保留LOGO/文字/花纹"
-        manual = bool(manual_indices.strip())
-        if manual:
-            chosen = json_value(manual_indices)
-        else:
-            analysis = json_value(analysis_json)
-            items = analysis.get("images") if isinstance(analysis, dict) else None
-            if not isinstance(items, list) or len(items) != 5:
-                raise ValueError("分析结果必须包含 images 数组，逐张描述原始图片1–5。")
-            indexed = {}
-            for item in items:
-                if not isinstance(item, dict) or type(item.get("index")) is not int or not 1 <= item["index"] <= 5 or item["index"] in indexed:
-                    raise ValueError("服饰图分析编号必须恰好为1–5，不允许重复或越界。")
-                if flexible:
-                    if any(type(item.get(field)) is not bool for field in ("has_logo", "has_text", "has_pattern")):
-                        raise ValueError("每张图须用 true/false 标明 has_logo、has_text、has_pattern。")
-                else:
-                    score = item.get("confidence")
-                    if type(score) not in (int, float) or not math.isfinite(score) or not 0 <= score <= 1:
-                        raise ValueError("每张图的 confidence 必须为0–1的数字。")
-                indexed[item["index"]] = item
-            if flexible:
-                candidates = [indexed[index] for index in sorted(indexed)
-                              if any(indexed[index][field] for field in ("has_logo", "has_text", "has_pattern"))]
-            else:
-                candidates = [item for item in indexed.values() if item.get("logo_text_closeup") is True
-                              and item.get("readable") is True and item.get("matches_selected_item") is True and item["confidence"] >= 0.8]
-                if len(candidates) < 2:
-                    raise ValueError(f"只识别到 {len(candidates)} 张清晰且匹配目标单品的LOGO/文字特写，不能满足两张原始细节图。请更换素材或目视确认后填写 manual_indices；不会重复图片或生成LOGO凑数。")
-                candidates.sort(key=lambda item: (-item["confidence"], item["index"]))
-                candidates = candidates[:2]
-            chosen = [item["index"] for item in candidates]
-            descriptions = {item["index"]: str(item.get("description", "LOGO/文字/花纹细节")) for item in candidates}
-        if (not isinstance(chosen, list) or (not flexible and len(chosen) != 2)
-                or any(type(index) is not int or not 1 <= index <= 5 for index in chosen) or len(set(chosen)) != len(chosen)):
-            raise ValueError("原图编号须为1–5且不能重复；两张LOGO特写模式须选两个编号。")
-        labels = [f"A 原始服饰图{index}：{descriptions.get(index, '人工确认的LOGO/文字细节')}" for index in chosen]
-        report = {"selected_original_indices": chosen, "selection": "manual" if manual else "model_analysis",
+        analysis = json_value(analysis_json)
+        items = analysis.get("images") if isinstance(analysis, dict) else None
+        if not isinstance(items, list) or len(items) != 5:
+            raise ValueError("分析结果必须包含 images 数组，逐张描述原始图片1–5。")
+        indexed = {}
+        for item in items:
+            if not isinstance(item, dict) or type(item.get("index")) is not int or not 1 <= item["index"] <= 5 or item["index"] in indexed:
+                raise ValueError("服饰图分析编号必须恰好为1–5，不允许重复或越界。")
+            if any(type(item.get(field)) is not bool for field in ("has_logo", "has_text", "has_pattern")):
+                raise ValueError("每张图须用 true/false 标明 has_logo、has_text、has_pattern。")
+            indexed[item["index"]] = item
+        chosen = [index for index in sorted(indexed) if any(indexed[index][field] for field in ("has_logo", "has_text", "has_pattern"))]
+        labels = [f"A 原始服饰图{index}：{indexed[index].get('description', 'LOGO/文字/花纹细节')}" for index in chosen]
+        report = {"selected_original_indices": chosen, "selection": "model_analysis",
                   "labels": labels, "source": "original_clothing_images", "generated_or_cropped": False}
         selected = [originals[index - 1] for index in chosen]
         return io.NodeOutput(selected[0] if selected else None, selected[1] if len(selected) > 1 else None,

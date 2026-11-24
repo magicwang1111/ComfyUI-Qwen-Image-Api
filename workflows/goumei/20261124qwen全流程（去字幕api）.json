@@ -2909,7 +2909,7 @@
         350
       ],
       "flags": {
-        "collapsed": true
+        "collapsed": false
       },
       "order": 28,
       "mode": 0,
@@ -2981,18 +2981,11 @@
           ]
         }
       ],
-      "title": "保留LOGO／文字／花纹原图｜0–5张，无则跳过",
+      "title": "自动保留LOGO／文字／花纹｜有则传，无则跳过",
       "properties": {
         "Node name for S&R": "GoumeiSelectLogoDetails"
       },
-      "widgets_values": [
-        "",
-        "保留LOGO/文字/花纹"
-      ],
-      "widgets_values_named": {
-        "manual_indices": "",
-        "selection_mode": "保留LOGO/文字/花纹"
-      }
+      "widgets_values": []
     },
     {
       "id": 155,

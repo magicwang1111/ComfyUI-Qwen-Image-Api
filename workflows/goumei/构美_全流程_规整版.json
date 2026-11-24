@@ -2,7 +2,7 @@
   "id": "64ac41f5-e015-4132-8cd7-6ac71861f625",
   "revision": 2,
   "last_node_id": 175,
-  "last_link_id": 153,
+  "last_link_id": 155,
   "nodes": [
     {
       "id": 100,
@@ -542,16 +542,22 @@
           "links": null
         }
       ],
-      "title": "Qwen3.8 Max｜自动选定服饰＋逐图LOGO评分",
+      "title": "Qwen3.8 Max｜逐图识别LOGO、文字、花纹",
       "properties": {
         "Node name for S&R": "ComfyUI-LLM Qwen Bailian"
       },
       "widgets_values": [
         "qwen3.8-max",
         "low",
-        "自动确定目标服饰：优先选择整体图中明确展示且与多张细节相互印证的主单品或成套穿搭；冲突款式选择证据最多的一款，不混搭、不要求用户填写替换对象。输出selected_items和carrying_notes；不确定内容写uncertainties。\n输入是一张带 IMAGE 1–5 标签的分析预览，五个格子依次对应五张原始服饰图。它不是单件商品拼图，务必按标签分别识别。\n逐一描述各图可见单品、位置、用途和是否匹配自动选定的目标单品。\n只有该原图主要清晰展示LOGO/文字/字母局部特写时 logo_text_closeup=true；普通整体衣服图、面料、缝线、口袋和小面积商标不要算特写。readable 表示标识形状/文字足够清楚，不得猜测看不清的文字。matches_selected_item 表示属于自动选定目标单品；不能证明同款时设false。\nconfidence 为上述判断的可信度（0到1），不能为凑两张而抬高分数。不足两张清晰匹配特写时如实说明。\n仅输出一个JSON对象，images 必须恰好含原始编号1–5，格式：\n{\"images\":[{\"index\":1,\"description\":\"对应单品、标识位置与可见细节\",\"items\":[],\"logo_text_closeup\":false,\"readable\":false,\"matches_selected_item\":false,\"confidence\":0.5}],\"selected_items\":[],\"carrying_notes\":\"\",\"uncertainties\":[]}。\n示例仅展示一项，实际必须完整列出五项。不要把原图裁剪后产生的新图或AI生成图作为选择结果。",
+        "自动确定目标服饰：优先选择整体图中明确展示且与多张细节相互印证的主单品或成套穿搭；冲突款式选择证据最多的一款，不混搭。输出 selected_items 和 carrying_notes；不确定内容写 uncertainties。\n输入是一张带 IMAGE 1–5 标签的分析预览，五个格子依次对应五张原始服饰图，务必按标签逐张识别。\n筛选规则：只要服饰或配饰本身可见 LOGO、文字、花纹中的任意一种，就保留该原图。整体图和局部图都可以，不要求必须是特写，不要求文字能完整读出，不限制必须属于选定款式，也不设置评分门槛；描述中注明所属单品和位置，避免下游混搭。\nhas_logo 表示可见品牌标志或图形标识；has_text 表示可见服饰上的文字、字母或数字；has_pattern 表示可见印花、刺绣图案、条纹、格纹、提花等装饰花纹。以上三个字段必须用布尔值 true/false。纯色面料、普通缝线、褶皱、口袋结构本身不算花纹。图片背景水印、商品说明叠字、编号标签 IMAGE 1–5 不算服饰细节。\n没有上述三类内容的图片，三个字段均为 false，不保留。允许0–5张符合条件，不凑数量；五张均无细节是正常结果。无法辨认时不要猜测，把不确定性写入 uncertainties；不能因为文字读不全就否认确实可见的文字。\n仅输出一个JSON对象，images 必须恰好包含原始编号1–5，不能遗漏或重复。格式示例（实际必须完整列出五项）：\n{\"images\":[{\"index\":1,\"description\":\"所属单品、标识/文字/花纹的位置和可见内容\",\"items\":[],\"has_logo\":false,\"has_text\":false,\"has_pattern\":false}],\"selected_items\":[],\"carrying_notes\":\"\",\"uncertainties\":[]}\n选择结果对应原图编号，不裁剪、不生成新图。",
         ""
-      ]
+      ],
+      "widgets_values_named": {
+        "model": "qwen3.8-max",
+        "thinking_level": "low",
+        "system_prompt": "自动确定目标服饰：优先选择整体图中明确展示且与多张细节相互印证的主单品或成套穿搭；冲突款式选择证据最多的一款，不混搭。输出 selected_items 和 carrying_notes；不确定内容写 uncertainties。\n输入是一张带 IMAGE 1–5 标签的分析预览，五个格子依次对应五张原始服饰图，务必按标签逐张识别。\n筛选规则：只要服饰或配饰本身可见 LOGO、文字、花纹中的任意一种，就保留该原图。整体图和局部图都可以，不要求必须是特写，不要求文字能完整读出，不限制必须属于选定款式，也不设置评分门槛；描述中注明所属单品和位置，避免下游混搭。\nhas_logo 表示可见品牌标志或图形标识；has_text 表示可见服饰上的文字、字母或数字；has_pattern 表示可见印花、刺绣图案、条纹、格纹、提花等装饰花纹。以上三个字段必须用布尔值 true/false。纯色面料、普通缝线、褶皱、口袋结构本身不算花纹。图片背景水印、商品说明叠字、编号标签 IMAGE 1–5 不算服饰细节。\n没有上述三类内容的图片，三个字段均为 false，不保留。允许0–5张符合条件，不凑数量；五张均无细节是正常结果。无法辨认时不要猜测，把不确定性写入 uncertainties；不能因为文字读不全就否认确实可见的文字。\n仅输出一个JSON对象，images 必须恰好包含原始编号1–5，不能遗漏或重复。格式示例（实际必须完整列出五项）：\n{\"images\":[{\"index\":1,\"description\":\"所属单品、标识/文字/花纹的位置和可见内容\",\"items\":[],\"has_logo\":false,\"has_text\":false,\"has_pattern\":false}],\"selected_items\":[],\"carrying_notes\":\"\",\"uncertainties\":[]}\n选择结果对应原图编号，不裁剪、不生成新图。",
+        "user_prompt": ""
+      }
     },
     {
       "id": 112,
@@ -582,7 +588,7 @@
           "links": null
         }
       ],
-      "title": "自动结果服饰｜已自动选定目标；原始logo额外保留",
+      "title": "自动结果服饰｜目标单品与逐图细节识别",
       "properties": {
         "Node name for S&R": "PreviewAny"
       },
@@ -1691,13 +1697,13 @@
           "name": "extras.image0",
           "shape": 7,
           "type": "IMAGE",
-          "link": 87
+          "link": null
         },
         {
           "name": "extras.image1",
           "shape": 7,
           "type": "IMAGE",
-          "link": 88
+          "link": null
         },
         {
           "name": "extras.image2",
@@ -1711,7 +1717,7 @@
           "widget": {
             "name": "extra_labels"
           },
-          "link": 89
+          "link": null
         },
         {
           "name": "scenario",
@@ -1720,6 +1726,12 @@
           "widget": {
             "name": "scenario"
           }
+        },
+        {
+          "name": "selected_details",
+          "type": "GOUMEI_DETAILS",
+          "shape": 7,
+          "link": 154
         }
       ],
       "outputs": [
@@ -1742,15 +1754,20 @@
           ]
         }
       ],
-      "title": "最终严格5张｜正面、背面、人脸、原始细节1、2",
+      "title": "最终参考图3–8张｜正面、背面、人脸＋可选原始细节",
       "properties": {
         "Node name for S&R": "GoumeiReferencePack"
       },
       "widgets_values": [
         "单人＋画外音",
         "[]",
-        5
-      ]
+        0
+      ],
+      "widgets_values_named": {
+        "scenario": "单人＋画外音",
+        "extra_labels": "[]",
+        "expected_count": 0
+      }
     },
     {
       "id": 133,
@@ -1812,9 +1829,15 @@
       "widgets_values": [
         "qwen3.8-max",
         "low",
-        "分析未去脸的原片及目标参考图，为人物服饰替换提供可见事实。用户信息给出图片编号映射，必须遵循。\n返回：镜头与人物朝向、主要动作、各角色目标服饰逐项描述、配饰穿戴/携带/握持关系、需调整的接触动作、logo/文字特写的单品和部位。\n服饰描述不混入动作指令。整体图决定组合，原始 logo 特写只补充同款细节，不新增单品。\n左右以人物自身为准；平铺图不能证明哪只手或哪侧肩膀携带。动作结合原片判断，不虚构不可见结构，不生成或改写台词。\n输出分为【目标穿搭】【穿戴与动作】【原始细节】。\n输入分析图含编号IMAGE 1–5的格子，与用户提供的图片映射一一对应；分别分析，不把格子间白边当作场景。",
+        "分析未去脸的原片及目标参考图，为人物服饰替换提供可见事实。用户信息给出图片编号映射，必须遵循，参考图实际为3–8张。\n返回：镜头与人物朝向、主要动作、各角色目标服饰逐项描述、配饰穿戴/携带/握持关系、需调整的接触动作，以及实际存在的原始LOGO/文字/花纹图对应的单品和部位。\n服饰描述不混入动作指令。正面和背面图决定目标穿搭；原始LOGO/文字/花纹图仅补充对应单品细节，不把其他款式混入目标穿搭，不新增单品。\n图片1、2、3分别为正面、背面、人脸；图片4起为可选的原始细节图，以映射实际数量为准。只有3张时，【原始细节】写“无额外原始细节图”，正常完成分析，不要求补图，不虚构图片4或5，不编造标识、文字或花纹。\n左右以人物自身为准；平铺图不能证明哪只手或哪侧肩膀携带。动作结合原片判断，不虚构不可见结构，不生成或改写台词。\n输出分为【目标穿搭】【穿戴与动作】【原始细节】。\n输入分析图含 IMAGE 1–N 的格子，N为映射中的实际图片数量，分别分析；不把格子间白边或空白格当作场景或额外图片。",
         ""
-      ]
+      ],
+      "widgets_values_named": {
+        "model": "qwen3.8-max",
+        "thinking_level": "low",
+        "system_prompt": "分析未去脸的原片及目标参考图，为人物服饰替换提供可见事实。用户信息给出图片编号映射，必须遵循，参考图实际为3–8张。\n返回：镜头与人物朝向、主要动作、各角色目标服饰逐项描述、配饰穿戴/携带/握持关系、需调整的接触动作，以及实际存在的原始LOGO/文字/花纹图对应的单品和部位。\n服饰描述不混入动作指令。正面和背面图决定目标穿搭；原始LOGO/文字/花纹图仅补充对应单品细节，不把其他款式混入目标穿搭，不新增单品。\n图片1、2、3分别为正面、背面、人脸；图片4起为可选的原始细节图，以映射实际数量为准。只有3张时，【原始细节】写“无额外原始细节图”，正常完成分析，不要求补图，不虚构图片4或5，不编造标识、文字或花纹。\n左右以人物自身为准；平铺图不能证明哪只手或哪侧肩膀携带。动作结合原片判断，不虚构不可见结构，不生成或改写台词。\n输出分为【目标穿搭】【穿戴与动作】【原始细节】。\n输入分析图含 IMAGE 1–N 的格子，N为映射中的实际图片数量，分别分析；不把格子间白边或空白格当作场景或额外图片。",
+        "user_prompt": ""
+      }
     },
     {
       "id": 134,
@@ -1880,7 +1903,7 @@
           "links": null
         }
       ],
-      "title": "最终参考图编号映射｜logo图片必须有用途",
+      "title": "最终参考图编号映射｜仅包含实际保留的图片",
       "properties": {
         "Node name for S&R": "PreviewAny"
       },
@@ -2796,27 +2819,19 @@
           "name": "detail_1",
           "type": "IMAGE",
           "slot_index": 0,
-          "links": [
-            85,
-            87
-          ]
+          "links": []
         },
         {
           "name": "detail_2",
           "type": "IMAGE",
           "slot_index": 1,
-          "links": [
-            86,
-            88
-          ]
+          "links": []
         },
         {
           "name": "labels",
           "type": "STRING",
           "slot_index": 2,
-          "links": [
-            89
-          ]
+          "links": []
         },
         {
           "name": "selection_report",
@@ -2825,15 +2840,21 @@
           "links": [
             84
           ]
+        },
+        {
+          "name": "selected_details",
+          "type": "GOUMEI_DETAILS",
+          "slot_index": 4,
+          "links": [
+            154
+          ]
         }
       ],
-      "title": "从原图1–5选两张LOGO特写｜不足则停止",
+      "title": "自动保留LOGO／文字／花纹｜有则传，无则跳过",
       "properties": {
         "Node name for S&R": "GoumeiSelectLogoDetails"
       },
-      "widgets_values": [
-        ""
-      ]
+      "widgets_values": []
     },
     {
       "id": 155,
@@ -2864,7 +2885,7 @@
           "links": null
         }
       ],
-      "title": "自动选择报告｜自动结果两个原图编号",
+      "title": "自动选择报告｜实际保留的原图编号，允许0张",
       "properties": {
         "Node name for S&R": "PreviewAny"
       },
@@ -2888,7 +2909,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 85
+          "link": 155
         }
       ],
       "outputs": [
@@ -2898,40 +2919,7 @@
           "links": null
         }
       ],
-      "title": "选中的原始LOGO细节1｜未生成、未裁剪",
-      "properties": {
-        "Node name for S&R": "PreviewImage"
-      }
-    },
-    {
-      "id": 157,
-      "type": "PreviewImage",
-      "pos": [
-        2490,
-        3290
-      ],
-      "size": [
-        430,
-        460
-      ],
-      "flags": {},
-      "order": 37,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 86
-        }
-      ],
-      "outputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "links": null
-        }
-      ],
-      "title": "选中的原始LOGO细节2｜未生成、未裁剪",
+      "title": "最终参考图预览｜3张人物图＋实际保留的细节图",
       "properties": {
         "Node name for S&R": "PreviewImage"
       }
@@ -2973,7 +2961,7 @@
           ]
         }
       ],
-      "title": "最终5图编号预览｜分析用，Wan仍是5张独立图",
+      "title": "最终参考图编号预览｜按实际3–8张分析",
       "properties": {
         "Node name for S&R": "GoumeiAnalysisSheet"
       }
@@ -3142,7 +3130,8 @@
           "slot_index": 0,
           "links": [
             49,
-            90
+            90,
+            155
           ]
         },
         {
@@ -3164,7 +3153,7 @@
           "links": null
         }
       ],
-      "title": "1K 等比缩放｜最终严格5张",
+      "title": "1K 等比缩放｜实际参考图3–8张",
       "properties": {
         "Node name for S&R": "ImageResizeKJv2"
       },
@@ -3782,22 +3771,6 @@
       "STRING"
     ],
     [
-      85,
-      154,
-      0,
-      156,
-      0,
-      "IMAGE"
-    ],
-    [
-      86,
-      154,
-      1,
-      157,
-      0,
-      "IMAGE"
-    ],
-    [
       91,
       158,
       0,
@@ -3884,30 +3857,6 @@
       132,
       0,
       "IMAGE"
-    ],
-    [
-      87,
-      154,
-      0,
-      132,
-      6,
-      "IMAGE"
-    ],
-    [
-      88,
-      154,
-      1,
-      132,
-      7,
-      "IMAGE"
-    ],
-    [
-      89,
-      154,
-      2,
-      132,
-      9,
-      "STRING"
     ],
     [
       34,
@@ -4316,6 +4265,22 @@
       132,
       10,
       "COMBO"
+    ],
+    [
+      154,
+      154,
+      4,
+      132,
+      11,
+      "GOUMEI_DETAILS"
+    ],
+    [
+      155,
+      166,
+      0,
+      156,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [

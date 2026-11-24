@@ -13,7 +13,8 @@ class WorkflowTests(unittest.TestCase):
         links = {link[0]: link for link in graph['links']}
         selector = next(node for node in nodes.values() if node['type'] == 'GoumeiSelectLogoDetails')
         pack = next(node for node in nodes.values() if node['type'] == 'GoumeiReferencePack')
-        self.assertEqual(selector['widgets_values_named']['selection_mode'], '保留LOGO/文字/花纹')
+        self.assertEqual(selector['widgets_values'], [])
+        self.assertNotIn('widgets_values_named', selector)
         self.assertEqual(pack['widgets_values_named']['expected_count'], 0)
         details = next(item for item in pack['inputs'] if item['name'] == 'selected_details')
         self.assertEqual(links[details['link']][1:3], [selector['id'], 4])
@@ -35,7 +36,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(len(sources(back, 'reference_images.')), 6)
         self.assertEqual(len(sources(by_type['QwenImageAPI'], 'reference_images.')), 3)
         self.assertEqual(len(sources(by_type['GoumeiSelectLogoDetails'], 'clothes.')), 5)
-        self.assertEqual(by_type['GoumeiReferencePack']['widgets_values'][2], 5)
+        self.assertEqual(by_type['GoumeiReferencePack']['widgets_values'][2], 0)
         self.assertEqual(sources(by_type['Wan 3.0 API Reference To Video'], 'reference_video_1')[0]['type'], 'Video Preprocess Remove Audio')
         visual = next(node for node in nodes.values() if node['type']=='ComfyUI-LLM Qwen Bailian' and '原片 +' in node['title'])
         self.assertEqual(sources(visual, 'image')[0]['type'], 'GoumeiAnalysisSheet')
